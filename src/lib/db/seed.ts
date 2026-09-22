@@ -58,7 +58,7 @@ async function main() {
       currency: "PHP",
       timezone: "Asia/Manila",
     });
-    console.log(`Created user "${email}" (${name}).`);
+    console.log(`Created user "${username}" (${name}).`);
   }
 
   const accountCount = await db.query.accounts.findFirst({

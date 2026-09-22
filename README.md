@@ -1,4 +1,4 @@
-# Ledger — Personal Expense Tracker
+# GastosWise — Personal Expense Tracker
 
 A personal-first expense and finance tracker, built from the architecture
 roadmap in this project. This is the **web MVP** — the "first real
@@ -9,7 +9,7 @@ balances and a dashboard.
 ## What's implemented
 
 - **Accounts** — cash, bank, e-wallet, savings, credit card, other. Balances
-  are always *derived* from initial balance + transaction history, never
+  are always _derived_ from initial balance + transaction history, never
   trusted from a stored column (architecture doc, section 7 & principle 1).
 - **Categories** — expense/income, with subcategories, icons and colors.
 - **Transactions** — expense, income, and a proper transfer type that moves
@@ -102,14 +102,17 @@ inserts/updates through the app's API before this was handed off). To
 apply it to your actual Neon project, pick one:
 
 **Option A — Neon SQL Editor (no local setup needed)**
+
 1. Open your project in the [Neon console](https://console.neon.tech) →
    SQL Editor.
 2. Paste the contents of `drizzle/0000_worthless_tigra.sql` and run it.
 
 **Option B — from a machine with normal internet access**
+
 ```bash
 pnpm db:migrate
 ```
+
 This runs `src/lib/db/migrate.ts`, which applies everything in `drizzle/`
 to `DATABASE_URL`.
 

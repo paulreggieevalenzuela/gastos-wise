@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input, Label, FieldError } from "@/components/ui/input";
+import { Label, FieldError } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function ResetPasswordForm({ token }: { token: string | null }) {
   const [password, setPassword] = useState("");
@@ -71,10 +72,9 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <Label htmlFor="password">New password</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           autoFocus
           value={password}
@@ -85,10 +85,9 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
       </div>
       <div>
         <Label htmlFor="confirmPassword">Confirm new password</Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}

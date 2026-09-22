@@ -49,7 +49,9 @@ export function LoadingScreen() {
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-surface"
     >
       <div className="flex flex-col items-center gap-4">
-        <span className="font-display text-2xl italic text-ink">Ledger</span>
+        <span className="font-display text-2xl italic text-ink">
+          GastosWise
+        </span>
 
         <div className="flex w-44 flex-col items-center gap-2">
           {/* the "ledger line" — a thin ink rule that fills in as a progress bar */}
@@ -65,7 +67,9 @@ export function LoadingScreen() {
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span className="font-tabular text-[11px] text-ink-faint">{pct}%</span>
+          <span className="font-tabular text-[11px] text-ink-faint">
+            {pct}%
+          </span>
         </div>
       </div>
 

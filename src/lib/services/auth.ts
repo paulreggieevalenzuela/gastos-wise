@@ -89,7 +89,17 @@ async function issueEmailVerification(user: User) {
 
   const link = `${appUrl()}/verify-email?token=${token}`;
   const { subject, html, text } = verifyEmailTemplate({ name: user.name, link });
-  await sendEmail({ to: user.email, subject, html, text });
+  try {
+    await sendEmail({ to: user.email, subject, html, text });
+  } catch (err) {
+    // Email is a side effect of registration, not a precondition for the
+    // account existing — the row above is already committed, so a Resend
+    // failure (unverified domain, bad key, rate limit, ...) must never
+    // surface as a failed registration. Log it so it's visible in
+    // Vercel's Runtime Logs, and the "Resend confirmation email" link on
+    // /login covers getting a working link once delivery is fixed.
+    console.error("[email] Failed to send verification email:", err);
+  }
 }
 
 /** Re-sends the confirmation email. Silently no-ops for unknown/already-verified accounts — never reveals which. */
@@ -139,7 +149,15 @@ export async function requestPasswordReset(email: string): Promise<void> {
 
   const link = `${appUrl()}/reset-password?token=${token}`;
   const { subject, html, text } = resetPasswordTemplate({ name: user.name, link });
-  await sendEmail({ to: user.email, subject, html, text });
+  try {
+    await sendEmail({ to: user.email, subject, html, text });
+  } catch (err) {
+    // Same reasoning as issueEmailVerification: never let a delivery
+    // failure turn into a 500, which would also leak (via the different
+    // response) whether this email address has an account — the caller
+    // always gets the same generic "instructions sent" response either way.
+    console.error("[email] Failed to send password reset email:", err);
+  }
 }
 
 export async function resetPassword(token: string, newPassword: string): Promise<{ status: "ok" | "invalid" }> {
