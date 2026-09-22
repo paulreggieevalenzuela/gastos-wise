@@ -4,6 +4,11 @@ import { requireSession } from "@/lib/auth/session";
 import { createTransaction, listTransactions } from "@/lib/services/transactions";
 import { createTransactionSchema, transactionFiltersSchema } from "@/lib/validation/transaction";
 
+// Reads the session cookie via requireSession() on every call, so this
+// route can never be statically rendered — declaring it explicitly stops
+// Next.js from probing (and logging) that during build.
+export const dynamic = "force-dynamic";
+
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const session = await requireSession();
   const params = Object.fromEntries(request.nextUrl.searchParams.entries());

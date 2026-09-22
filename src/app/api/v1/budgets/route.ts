@@ -4,6 +4,11 @@ import { requireSession } from "@/lib/auth/session";
 import { createBudget, listBudgetsWithUsage } from "@/lib/services/budgets";
 import { createBudgetSchema } from "@/lib/validation/budget";
 
+// Reads the session cookie via requireSession() on every call, so this
+// route can never be statically rendered — declaring it explicitly stops
+// Next.js from probing (and logging) that during build.
+export const dynamic = "force-dynamic";
+
 export const GET = withErrorHandling(async () => {
   const session = await requireSession();
   const budgets = await listBudgetsWithUsage(session.userId);

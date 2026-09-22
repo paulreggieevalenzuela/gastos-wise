@@ -4,6 +4,11 @@ import { requireSession } from "@/lib/auth/session";
 import { deleteAccount, getAccount, updateAccount } from "@/lib/services/accounts";
 import { updateAccountSchema } from "@/lib/validation/account";
 
+// Reads the session cookie via requireSession() on every call, so this
+// route can never be statically rendered — declaring it explicitly stops
+// Next.js from probing (and logging) that during build.
+export const dynamic = "force-dynamic";
+
 interface Params {
   params: { id: string };
 }

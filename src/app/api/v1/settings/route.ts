@@ -6,6 +6,11 @@ import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { updateSettingsSchema } from "@/lib/validation/settings";
 
+// Reads the session cookie via requireSession() on every call, so this
+// route can never be statically rendered — declaring it explicitly stops
+// Next.js from probing (and logging) that during build.
+export const dynamic = "force-dynamic";
+
 export const PATCH = withErrorHandling(async (request: NextRequest) => {
   const session = await requireSession();
   const body = await request.json();

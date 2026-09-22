@@ -27,11 +27,12 @@ export function Sidebar() {
   return (
     <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-surface md:flex">
       <div className="flex h-16 items-center px-6">
-        <span className="font-display text-lg italic text-ink">Ledger</span>
+        <span className="font-display text-lg italic text-ink">GastosWise</span>
       </div>
       <nav className="flex-1 space-y-0.5 px-3">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <Link
@@ -62,7 +63,8 @@ export function MobileNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface md:hidden">
       {NAV_ITEMS.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active =
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
         return (
           <Link
