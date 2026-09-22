@@ -2,7 +2,21 @@ import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_COOKIE = "expense_tracker_session";
-const PUBLIC_PATHS = ["/login", "/api/auth/login"];
+
+// Pages an already-signed-in visitor should be bounced off of (to /dashboard).
+const GUEST_ONLY_PATHS = ["/login", "/register", "/forgot-password"];
+
+const PUBLIC_PATHS = [
+  ...GUEST_ONLY_PATHS,
+  "/verify-email",
+  "/reset-password",
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/verify-email",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth/resend-verification",
+];
 
 function getSecretKey() {
   const secret = process.env.AUTH_SECRET ?? "";
@@ -22,14 +36,23 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const isStatic = pathname.startsWith("/_next") || pathname.startsWith("/favicon");
 
-  if (isPublic || isStatic) {
+  if (isStatic) {
     return NextResponse.next();
   }
 
   const authed = await hasValidSession(request);
+
+  const isGuestOnly = GUEST_ONLY_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  if (authed && isGuestOnly) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  if (isPublic) {
+    return NextResponse.next();
+  }
 
   if (!authed && !pathname.startsWith("/api")) {
     const loginUrl = new URL("/login", request.url);
@@ -39,10 +62,6 @@ export async function middleware(request: NextRequest) {
 
   if (!authed && pathname.startsWith("/api")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (authed && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

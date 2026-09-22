@@ -7,10 +7,14 @@ import { createId } from "./cuid";
 import bcrypt from "bcryptjs";
 
 /**
- * Seeds one mock user (the personal MVP login — see README "Authentication")
- * plus a starter set of accounts and categories so the app isn't empty on
- * first run. Safe to re-run: it upserts the user by email and skips
+ * Seeds one convenience dev/mock user (see README "Authentication") plus a
+ * starter set of accounts and categories so the app isn't empty on first
+ * run. Safe to re-run: it upserts the user by username and skips
  * accounts/categories if that user already has any.
+ *
+ * This user is auto-verified (emailVerifiedAt set immediately) — there's
+ * no inbox behind MOCK_USER_EMAIL by default, so it skips the confirmation
+ * flow that real registrations (via /register) go through.
  *
  * Run with: pnpm db:seed
  */
@@ -25,23 +29,30 @@ async function main() {
   });
   const db = drizzle(sql, { schema });
 
-  const email = process.env.MOCK_USER_EMAIL ?? "paulreggie05";
+  const username = process.env.MOCK_USER_USERNAME ?? "paulreggie05";
+  const email = process.env.MOCK_USER_EMAIL ?? "paulreggie05@example.com";
   const password = process.env.MOCK_USER_PASSWORD ?? "123456789";
   const name = process.env.MOCK_USER_NAME ?? "Paul";
 
-  const existing = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.email, email) });
+  const existing = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.username, username) });
 
   const userId = existing?.id ?? createId();
   if (existing) {
-    console.log(`User "${email}" already exists — updating password and leaving data as-is.`);
+    console.log(`User "${username}" already exists — updating password and leaving data as-is.`);
     await db
       .update(schema.users)
-      .set({ passwordHash: await bcrypt.hash(password, 10), updatedAt: new Date() })
+      .set({
+        passwordHash: await bcrypt.hash(password, 10),
+        emailVerifiedAt: existing.emailVerifiedAt ?? new Date(),
+        updatedAt: new Date(),
+      })
       .where(eq(schema.users.id, existing.id));
   } else {
     await db.insert(schema.users).values({
       id: userId,
+      username,
       email,
+      emailVerifiedAt: new Date(),
       passwordHash: await bcrypt.hash(password, 10),
       name,
       currency: "PHP",
@@ -133,7 +144,7 @@ async function main() {
   }
 
   console.log("\nDone. Log in with:");
-  console.log(`  username: ${email}`);
+  console.log(`  username: ${username}`);
   console.log(`  password: ${password}`);
 
   await sql.end();

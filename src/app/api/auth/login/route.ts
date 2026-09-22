@@ -6,16 +6,25 @@ import { loginSchema } from "@/lib/validation/auth";
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const body = await request.json();
-  const { email, password } = loginSchema.parse(body);
+  const { identifier, password } = loginSchema.parse(body);
 
-  const user = await authenticateUser(email, password);
-  if (!user) {
+  const result = await authenticateUser(identifier, password);
+
+  if (result.status === "invalid_credentials") {
     return NextResponse.json({ error: "Incorrect username or password." }, { status: 401 });
   }
 
+  if (result.status === "unverified") {
+    return NextResponse.json(
+      { error: "Confirm your email before signing in.", code: "unverified" },
+      { status: 403 },
+    );
+  }
+
+  const { user } = result;
   await createSession({ userId: user.id, email: user.email, name: user.name });
 
   return NextResponse.json({
-    user: { id: user.id, email: user.email, name: user.name, currency: user.currency },
+    user: { id: user.id, username: user.username, email: user.email, name: user.name, currency: user.currency },
   });
 });
