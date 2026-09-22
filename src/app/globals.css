@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ */
+/* Color tokens. Numbers are "R G B" triplets (no commas) so Tailwind  */
+/* can apply alpha via rgb(var(--x) / <alpha-value>). Four accent      */
+/* choices layer on top of light/dark via [data-accent] on <html>.     */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --color-bg: 245 245 241;
+  --color-surface: 255 255 255;
+  --color-surface-raised: 238 237 231;
+  --color-border: 226 224 216;
+  --color-border-strong: 203 200 190;
+  --color-ink: 22 36 31;
+  --color-ink-muted: 75 90 84;
+  --color-ink-faint: 140 151 144;
+
+  --color-positive: 31 111 84;
+  --color-positive-soft: 217 232 225;
+  --color-negative: 179 69 59;
+  --color-negative-soft: 245 223 219;
+  --color-warning: 168 116 27;
+  --color-warning-soft: 247 232 205;
+
+  /* default accent: emerald */
+  --color-accent: 31 111 84;
+  --color-accent-ink: 255 255 255;
+  --color-accent-soft: 217 232 225;
+}
+
+:root[data-accent="navy"] {
+  --color-accent: 42 76 124;
+  --color-accent-ink: 255 255 255;
+  --color-accent-soft: 219 227 238;
+}
+
+:root[data-accent="plum"] {
+  --color-accent: 108 63 99;
+  --color-accent-ink: 255 255 255;
+  --color-accent-soft: 235 224 233;
+}
+
+:root[data-accent="rust"] {
+  --color-accent: 141 68 40;
+  --color-accent-ink: 255 255 255;
+  --color-accent-soft: 237 222 211;
+}
+
+.dark {
+  --color-bg: 16 23 20;
+  --color-surface: 23 33 28;
+  --color-surface-raised: 28 40 34;
+  --color-border: 41 55 48;
+  --color-border-strong: 60 78 69;
+  --color-ink: 233 239 233;
+  --color-ink-muted: 168 182 174;
+  --color-ink-faint: 108 124 116;
+
+  --color-positive: 74 189 150;
+  --color-positive-soft: 27 46 39;
+  --color-negative: 224 133 120;
+  --color-negative-soft: 54 33 30;
+  --color-warning: 219 169 84;
+  --color-warning-soft: 54 44 25;
+
+  --color-accent: 74 189 150;
+  --color-accent-ink: 8 17 14;
+  --color-accent-soft: 27 46 39;
+}
+
+.dark[data-accent="navy"] {
+  --color-accent: 116 160 214;
+  --color-accent-ink: 8 14 22;
+  --color-accent-soft: 26 38 52;
+}
+
+.dark[data-accent="plum"] {
+  --color-accent: 201 141 195;
+  --color-accent-ink: 20 10 19;
+  --color-accent-soft: 45 32 44;
+}
+
+.dark[data-accent="rust"] {
+  --color-accent: 216 145 108;
+  --color-accent-ink: 20 11 6;
+  --color-accent-soft: 51 35 26;
+}
+
+* {
+  border-color: rgb(var(--color-border));
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-ink));
+}
+
+@supports (font-variation-settings: normal) {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+::selection {
+  background-color: rgb(var(--color-accent) / 0.25);
+}
