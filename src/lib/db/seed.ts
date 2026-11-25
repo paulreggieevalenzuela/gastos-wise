@@ -90,13 +90,24 @@ async function main() {
   });
 
   if (!categoryCount) {
+    type ChildCategory = string | { name: string; icon?: string };
     const expenseCategories = [
-      { name: "Food", icon: "utensils", color: "amber", children: ["Restaurants", "Groceries", "Coffee"] },
-      { name: "Transportation", icon: "car", color: "sky", children: ["Grab", "Fuel", "Parking"] },
-      { name: "Bills", icon: "receipt", color: "rose", children: ["Electricity", "Internet", "Mobile"] },
-      { name: "Shopping", icon: "shopping-bag", color: "violet", children: [] as string[] },
-      { name: "Health", icon: "heart-pulse", color: "emerald", children: [] as string[] },
-      { name: "Entertainment", icon: "clapperboard", color: "fuchsia", children: [] as string[] },
+      { name: "Food", icon: "utensils", color: "amber", children: ["Restaurants", "Groceries", "Coffee"] as ChildCategory[] },
+      { name: "Transportation", icon: "car", color: "sky", children: ["Grab", "Fuel", "Parking"] as ChildCategory[] },
+      {
+        name: "Bills",
+        icon: "receipt",
+        color: "rose",
+        children: [
+          { name: "Meralco", icon: "zap" },
+          { name: "Water", icon: "droplet" },
+          { name: "Internet", icon: "wifi" },
+          { name: "Mobile Data/Network", icon: "smartphone" },
+        ] as ChildCategory[],
+      },
+      { name: "Shopping", icon: "shopping-bag", color: "violet", children: [] as ChildCategory[] },
+      { name: "Health", icon: "heart-pulse", color: "emerald", children: [] as ChildCategory[] },
+      { name: "Entertainment", icon: "clapperboard", color: "fuchsia", children: [] as ChildCategory[] },
     ];
     const incomeCategories = [
       { name: "Salary", icon: "wallet", color: "emerald" },
@@ -117,12 +128,14 @@ async function main() {
         sortOrder: sortOrder++,
       });
       for (const child of cat.children) {
+        const childName = typeof child === "string" ? child : child.name;
+        const childIcon = typeof child === "string" ? cat.icon : (child.icon ?? cat.icon);
         await db.insert(schema.categories).values({
           id: createId(),
           userId,
-          name: child,
+          name: childName,
           type: "EXPENSE",
-          icon: cat.icon,
+          icon: childIcon,
           color: cat.color,
           parentId,
           sortOrder: sortOrder++,

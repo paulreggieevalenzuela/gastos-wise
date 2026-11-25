@@ -1,0 +1,14 @@
+{
+  "name": "GastosWise — Personal Finance",
+  "short_name": "GastosWise",
+  "description": "A personal expense and finance tracker.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#101714",
+  "theme_color": "#1F6F54",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

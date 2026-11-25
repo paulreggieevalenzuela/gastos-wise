@@ -24,6 +24,7 @@ export interface AccountWithBalance {
   id: string;
   name: string;
   type: (typeof accounts.$inferSelect)["type"];
+  icon: string | null;
   currency: string;
   initialBalance: number;
   balance: number;
@@ -53,6 +54,7 @@ export async function listAccounts(userId: string, includeInactive = false): Pro
         id: a.id,
         name: a.name,
         type: a.type,
+        icon: a.icon,
         currency: a.currency,
         initialBalance: Number(a.initialBalance),
         balance: fromCents(balanceCents),
@@ -77,6 +79,7 @@ export async function createAccount(userId: string, input: CreateAccountInput) {
       userId,
       name: input.name,
       type: input.type,
+      icon: input.icon ?? null,
       currency: input.currency,
       initialBalance: input.initialBalance.toFixed(2),
     })
@@ -95,6 +98,7 @@ export async function updateAccount(userId: string, id: string, input: UpdateAcc
     .set({
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.type !== undefined ? { type: input.type } : {}),
+      ...(input.icon !== undefined ? { icon: input.icon } : {}),
       ...(input.currency !== undefined ? { currency: input.currency } : {}),
       ...(input.initialBalance !== undefined ? { initialBalance: input.initialBalance.toFixed(2) } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),

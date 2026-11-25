@@ -115,3 +115,126 @@ body {
 ::selection {
   background-color: rgb(var(--color-accent) / 0.25);
 }
+
+/* ------------------------------------------------------------------ */
+/* Landing page motion. Every animation here is switched off under     */
+/* prefers-reduced-motion (bottom of this block).                      */
+/* ------------------------------------------------------------------ */
+
+@keyframes lp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lp-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lp-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes lp-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes lp-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.lp-fade-up {
+  animation: lp-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lp-slide-in {
+  animation: lp-slide-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lp-float {
+  animation: lp-float 6s ease-in-out infinite;
+}
+
+.lp-grow-x {
+  transform-origin: left;
+  animation: lp-grow-x 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lp-marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.lp-marquee-track {
+  animation: lp-marquee 45s linear infinite;
+}
+
+.lp-marquee:hover .lp-marquee-track {
+  animation-play-state: paused;
+}
+
+.lp-grid {
+  background-image:
+    linear-gradient(to right, rgb(var(--color-border) / 0.7) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--color-border) / 0.7) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 20%, transparent 75%);
+}
+
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lp-reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-fade-up,
+  .lp-slide-in,
+  .lp-float,
+  .lp-grow-x,
+  .lp-marquee-track {
+    animation: none !important;
+  }
+
+  .lp-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

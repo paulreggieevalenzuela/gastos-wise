@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -25,6 +25,18 @@ const plexSans = IBM_Plex_Sans({
 export const metadata: Metadata = {
   title: "GastosWise — Personal Finance",
   description: "A personal expense and finance tracker.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "GastosWise",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#1F6F54",
 };
 
 export default async function RootLayout({

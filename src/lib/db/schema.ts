@@ -97,6 +97,9 @@ export const accounts = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     type: accountTypeEnum("type").notNull(),
+    // Institution preset key (e.g. "bdo", "gcash") -- see src/lib/institutions.ts.
+    // Null for freeform/custom accounts with no matching preset.
+    icon: text("icon"),
     currency: text("currency").notNull().default("PHP"),
     initialBalance: decimal("initial_balance", { precision: 14, scale: 2 }).notNull().default("0"),
     isActive: boolean("is_active").notNull().default(true),
