@@ -8,8 +8,12 @@ const GUEST_ONLY_PATHS = ["/login", "/register", "/forgot-password"];
 
 const PUBLIC_PATHS = [
   ...GUEST_ONLY_PATHS,
+  "/", // landing page -- page.tsx itself redirects signed-in visitors to /dashboard
   "/verify-email",
   "/reset-password",
+  "/faq",
+  "/privacy",
+  "/terms",
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/verify-email",
@@ -68,5 +72,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Skip static assets (icons, PWA manifest, images) so they're reachable
+  // while signed out -- otherwise the favicon and "Add to Home Screen"
+  // manifest would get redirected to /login for logged-out visitors.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|ico|svg|jpg|jpeg|webp|webmanifest)$).*)",
+  ],
 };

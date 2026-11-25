@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
+import { AuthFooterLinks } from "@/components/auth/auth-footer-links";
 
 export default function LoginPage() {
   return (
@@ -16,6 +17,7 @@ export default function LoginPage() {
             <LoginForm />
           </Suspense>
         </div>
+        <AuthFooterLinks />
       </div>
     </main>
   );

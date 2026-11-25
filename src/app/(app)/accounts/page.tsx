@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ACCOUNT_TYPE_ICONS } from "@/lib/icons";
+import { InstitutionIcon } from "@/components/accounts/institution-icon";
 import { formatMoney } from "@/lib/utils";
 import type { ApiAccount } from "@/types/api";
 
@@ -55,15 +55,12 @@ export default function AccountsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {accounts.map((account) => {
-            const Icon = ACCOUNT_TYPE_ICONS[account.type];
             return (
               <Card key={account.id} className={!account.isActive ? "opacity-60" : undefined}>
                 <CardContent className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent">
-                        <Icon size={18} />
-                      </div>
+                      <InstitutionIcon icon={account.icon} type={account.type} size={40} />
                       <div>
                         <p className="font-medium text-ink">{account.name}</p>
                         <p className="text-xs capitalize text-ink-muted">

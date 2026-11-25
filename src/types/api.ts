@@ -11,6 +11,7 @@ export interface ApiAccount {
   id: string;
   name: string;
   type: AccountType;
+  icon: string | null;
   currency: string;
   initialBalance: number;
   balance: number;

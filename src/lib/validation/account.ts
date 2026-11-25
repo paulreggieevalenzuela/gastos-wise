@@ -5,6 +5,7 @@ export const ACCOUNT_TYPES = ["CASH", "BANK", "EWALLET", "SAVINGS", "CREDIT_CARD
 export const createAccountSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(60),
   type: z.enum(ACCOUNT_TYPES),
+  icon: z.string().trim().max(32).nullable().optional(),
   currency: z.string().trim().length(3).default("PHP"),
   initialBalance: z.coerce.number().finite().default(0),
 });

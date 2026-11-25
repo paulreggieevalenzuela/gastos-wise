@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useCreateAccount, useUpdateAccount } from "@/hooks/use-accounts";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
+import { InstitutionIcon } from "@/components/accounts/institution-icon";
+import { INSTITUTIONS, getInstitution } from "@/lib/institutions";
 import type { ApiAccount, AccountType } from "@/types/api";
 
 const ACCOUNT_TYPES: { value: AccountType; label: string }[] = [
@@ -17,6 +19,7 @@ const ACCOUNT_TYPES: { value: AccountType; label: string }[] = [
 
 export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone: () => void }) {
   const isEdit = Boolean(account);
+  const [institutionKey, setInstitutionKey] = useState<string>(account?.icon ?? "custom");
   const [name, setName] = useState(account?.name ?? "");
   const [type, setType] = useState<AccountType>(account?.type ?? "CASH");
   const [initialBalance, setInitialBalance] = useState(
@@ -28,6 +31,15 @@ export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone:
   const createMutation = useCreateAccount();
   const updateMutation = useUpdateAccount();
 
+  function onInstitutionChange(key: string) {
+    setInstitutionKey(key);
+    const institution = getInstitution(key);
+    if (institution) {
+      setType(institution.type);
+      setName((prev) => (prev.trim() === "" ? institution.label : prev));
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -37,7 +49,12 @@ export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone:
     }
     setSubmitting(true);
     try {
-      const payload = { name: name.trim(), type, initialBalance: Number(initialBalance) || 0 };
+      const payload = {
+        name: name.trim(),
+        type,
+        icon: institutionKey === "custom" ? null : institutionKey,
+        initialBalance: Number(initialBalance) || 0,
+      };
       if (isEdit && account) {
         await updateMutation.mutateAsync({ id: account.id, input: payload });
       } else {
@@ -53,6 +70,25 @@ export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone:
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="institution">Institution</Label>
+        <div className="flex items-center gap-3">
+          <InstitutionIcon icon={institutionKey === "custom" ? null : institutionKey} type={type} size={36} />
+          <Select
+            id="institution"
+            value={institutionKey}
+            onChange={(e) => onInstitutionChange(e.target.value)}
+            className="flex-1"
+          >
+            <option value="custom">Custom / other</option>
+            {INSTITUTIONS.map((i) => (
+              <option key={i.key} value={i.key}>
+                {i.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
       <div>
         <Label htmlFor="name">Name</Label>
         <Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoFocus required />

@@ -6,6 +6,7 @@ import {
   CirclePlus,
   Clapperboard,
   CreditCard,
+  Droplet,
   HeartPulse,
   Landmark,
   PiggyBank,
@@ -14,6 +15,8 @@ import {
   Smartphone,
   Utensils,
   Wallet,
+  Wifi,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import type { AccountType } from "@/types/api";
@@ -30,6 +33,10 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   briefcase: Briefcase,
   "circle-plus": CirclePlus,
   circle: Circle,
+  zap: Zap,
+  droplet: Droplet,
+  wifi: Wifi,
+  smartphone: Smartphone,
 };
 
 export function getCategoryIcon(icon: string | null | undefined): LucideIcon {

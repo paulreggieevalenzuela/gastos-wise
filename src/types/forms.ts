@@ -8,6 +8,7 @@ import type { AccountType, BudgetPeriod, CategoryType, TransactionType } from "@
 export interface AccountFormPayload {
   name: string;
   type: AccountType;
+  icon?: string | null;
   initialBalance: number;
   currency?: string;
 }
