@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import postgres from "postgres";
 import * as schema from "./schema";
 import { createId } from "./cuid";
+import { buildDefaultCategoryRows } from "../defaults";
 import bcrypt from "bcryptjs";
 
 /**
@@ -53,6 +54,8 @@ async function main() {
       username,
       email,
       emailVerifiedAt: new Date(),
+      // The seed adds its own demo wallets and the default categories below.
+      starterDataAppliedAt: new Date(),
       passwordHash: await bcrypt.hash(password, 10),
       name,
       currency: "PHP",
@@ -91,88 +94,10 @@ async function main() {
   });
 
   if (!categoryCount) {
-    type ChildCategory = string | { name: string; icon?: string };
-    const expenseCategories = [
-      {
-        name: "Food",
-        icon: "utensils",
-        color: "amber",
-        children: [
-          { name: "Restaurants", icon: "utensils" },
-          { name: "Groceries", icon: "shopping-cart" },
-          { name: "Coffee", icon: "coffee" },
-        ] as ChildCategory[],
-      },
-      {
-        name: "Transportation",
-        icon: "car",
-        color: "sky",
-        children: [
-          { name: "Grab", icon: "taxi" },
-          { name: "Fuel", icon: "fuel" },
-          { name: "Parking", icon: "parking" },
-        ] as ChildCategory[],
-      },
-      {
-        name: "Bills",
-        icon: "receipt",
-        color: "rose",
-        children: [
-          { name: "Meralco", icon: "zap" },
-          { name: "Water", icon: "droplet" },
-          { name: "Internet", icon: "wifi" },
-          { name: "Mobile Data/Network", icon: "smartphone" },
-        ] as ChildCategory[],
-      },
-      { name: "Shopping", icon: "shopping-bag", color: "violet", children: [] as ChildCategory[] },
-      { name: "Health", icon: "heart-pulse", color: "emerald", children: [] as ChildCategory[] },
-      { name: "Entertainment", icon: "clapperboard", color: "fuchsia", children: [] as ChildCategory[] },
-    ];
-    const incomeCategories = [
-      { name: "Salary", icon: "wallet", color: "emerald" },
-      { name: "Freelance", icon: "briefcase", color: "teal" },
-      { name: "Other Income", icon: "circle-plus", color: "slate" },
-    ];
-
-    let sortOrder = 0;
-    for (const cat of expenseCategories) {
-      const parentId = createId();
-      await db.insert(schema.categories).values({
-        id: parentId,
-        userId,
-        name: cat.name,
-        type: "EXPENSE",
-        icon: cat.icon,
-        color: cat.color,
-        sortOrder: sortOrder++,
-      });
-      for (const child of cat.children) {
-        const childName = typeof child === "string" ? child : child.name;
-        const childIcon = typeof child === "string" ? cat.icon : (child.icon ?? cat.icon);
-        await db.insert(schema.categories).values({
-          id: createId(),
-          userId,
-          name: childName,
-          type: "EXPENSE",
-          icon: childIcon,
-          color: cat.color,
-          parentId,
-          sortOrder: sortOrder++,
-        });
-      }
-    }
-    for (const cat of incomeCategories) {
-      await db.insert(schema.categories).values({
-        id: createId(),
-        userId,
-        name: cat.name,
-        type: "INCOME",
-        icon: cat.icon,
-        color: cat.color,
-        sortOrder: sortOrder++,
-      });
-    }
-    console.log("Seeded default categories.");
+    // Same defaults every new registration gets (src/lib/defaults.ts).
+    const rows = buildDefaultCategoryRows(userId, createId);
+    await db.insert(schema.categories).values(rows);
+    console.log(`Seeded ${rows.length} default categories.`);
   }
 
   console.log("\nDone. Log in with:");

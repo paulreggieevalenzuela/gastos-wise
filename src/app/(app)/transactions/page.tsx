@@ -1,13 +1,12 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { useDeleteTransaction, useTransactions } from "@/hooks/use-transactions";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { TransactionForm } from "@/components/transactions/transaction-form";
-import { AddTransactionPanel } from "@/components/transactions/add-transaction-panel";
+import { useAddTransaction } from "@/components/transactions/add-transaction-provider";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Picker } from "@/components/ui/picker";
@@ -17,6 +16,7 @@ import { CategoryBadge } from "@/components/categories/category-badge";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { ApiTransaction } from "@/types/api";
+import { ConfirmDialog, type ConfirmRequest } from "@/components/ui/confirm-dialog";
 import { Layers, Plus, Receipt, Tags } from "lucide-react";
 import { cn, formatMoney, formatRelativeDay } from "@/lib/utils";
 
@@ -28,14 +28,13 @@ const TYPE_FILTERS = [
 ] as const;
 
 function TransactionsPageInner() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const [type, setType] = useState("");
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [page, setPage] = useState(1);
-  const [modalOpen, setModalOpen] = useState(searchParams.get("new") === "1");
+  const openAddTransaction = useAddTransaction();
   const [editing, setEditing] = useState<ApiTransaction | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   const { data: accounts } = useAccounts();
   const { data: categories } = useCategories();
@@ -44,11 +43,6 @@ function TransactionsPageInner() {
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
-  function closeModal() {
-    setModalOpen(false);
-    setEditing(null);
-    if (searchParams.get("new")) router.replace("/transactions");
-  }
 
   const filterOptions = useMemo(
     () => ({
@@ -77,7 +71,7 @@ function TransactionsPageInner() {
           <p className="text-sm font-bold text-accent">Activity</p>
           <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">Transactions</h1>
         </div>
-        <Button onClick={() => setModalOpen(true)} className="hidden sm:inline-flex">
+        <Button onClick={openAddTransaction} className="hidden sm:inline-flex">
           <Plus size={18} /> Add transaction
         </Button>
       </div>
@@ -159,7 +153,7 @@ function TransactionsPageInner() {
           icon={Receipt}
           title="No transactions found"
           description="Try a different filter, or add your first transaction."
-          action={<Button onClick={() => setModalOpen(true)}>Add transaction</Button>}
+          action={<Button onClick={openAddTransaction}>Add transaction</Button>}
         />
       ) : (
         <Card className="divide-y divide-border/70">
@@ -204,9 +198,8 @@ function TransactionsPageInner() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={closeModal} title="Add transaction">
-        {modalOpen && <AddTransactionPanel onDone={closeModal} />}
-      </Modal>
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
 
       <Modal open={Boolean(editing)} onClose={() => setEditing(null)} title="Edit transaction">
         {editing && (
@@ -215,10 +208,25 @@ function TransactionsPageInner() {
             <button
               type="button"
               className="gw-press w-full rounded-xl border border-negative/30 py-2.5 text-sm font-bold text-negative hover:bg-negative-soft"
-              onClick={async () => {
+              onClick={() => {
                 if (!editing) return;
-                await deleteMutation.mutateAsync(editing.id);
-                setEditing(null);
+                const target = editing;
+                setConfirm({
+                  title: "Delete this transaction?",
+                  description: (
+                    <>
+                      <span className="font-semibold text-ink">
+                        {target.merchant || target.description || target.category?.name || "Transaction"} ·{" "}
+                        {formatMoney(Number(target.amount), target.currency)}
+                      </span>
+                      <span className="mt-1 block">Your wallet balance will be updated. This can&rsquo;t be undone.</span>
+                    </>
+                  ),
+                  onConfirm: async () => {
+                    await deleteMutation.mutateAsync(target.id);
+                    setEditing(null);
+                  },
+                });
               }}
             >
               Delete transaction

@@ -47,6 +47,10 @@ export const users = pgTable("users", {
   timezone: text("timezone").notNull().default("Asia/Manila"),
   themeMode: text("theme_mode").notNull().default("system"),
   accentColor: text("accent_color").notNull().default("emerald"),
+  // When the starter Cash wallet + default categories were given to this
+  // account (src/lib/services/onboarding.ts). Set once, so anything the
+  // person later deletes stays deleted.
+  starterDataAppliedAt: timestamp("starter_data_applied_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

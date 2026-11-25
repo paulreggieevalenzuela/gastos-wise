@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { categories } from "@/lib/db/schema";
 import { ConflictError, NotFoundError } from "@/lib/api/handler";
@@ -57,25 +57,42 @@ export async function updateCategory(userId: string, id: string, input: UpdateCa
   return updated;
 }
 
+/**
+ * Deletes a category — and its subcategories with it. Refused (with a
+ * suggestion to archive instead) if the category or any of its
+ * subcategories is still used by transactions or a budget, so no history
+ * is ever orphaned.
+ */
 export async function deleteCategory(userId: string, id: string) {
   const existing = await db.query.categories.findFirst({
     where: (c, { eq: eqOp, and: andOp }) => andOp(eqOp(c.id, id), eqOp(c.userId, userId)),
   });
   if (!existing) throw new NotFoundError("Category not found");
 
-  const [referencingTx, referencingChild, referencingBudget] = await Promise.all([
-    db.query.transactions.findFirst({ where: (t, { eq: eqOp }) => eqOp(t.categoryId, id) }),
-    db.query.categories.findFirst({ where: (c, { eq: eqOp }) => eqOp(c.parentId, id) }),
-    db.query.budgets.findFirst({ where: (b, { eq: eqOp }) => eqOp(b.categoryId, id) }),
+  const children = await db.query.categories.findMany({
+    where: (c, { eq: eqOp, and: andOp }) => andOp(eqOp(c.parentId, id), eqOp(c.userId, userId)),
+    columns: { id: true, name: true },
+  });
+  const ids = [id, ...children.map((c) => c.id)];
+
+  const [referencingTx, referencingBudget] = await Promise.all([
+    db.query.transactions.findFirst({ where: (t, { inArray: inOp }) => inOp(t.categoryId, ids) }),
+    db.query.budgets.findFirst({ where: (b, { inArray: inOp }) => inOp(b.categoryId, ids) }),
   ]);
   if (referencingTx || referencingBudget) {
     throw new ConflictError(
-      "This category is used by transactions or a budget. Archive it instead of deleting it.",
+      children.length > 0
+        ? "This category or one of its subcategories is used by transactions or a budget. Archive it instead so your history stays intact."
+        : "This category is used by transactions or a budget. Archive it instead so your history stays intact.",
     );
   }
-  if (referencingChild) {
-    throw new ConflictError("This category has subcategories. Remove or move those first.");
-  }
 
-  await db.delete(categories).where(and(eq(categories.id, id), eq(categories.userId, userId)));
+  await db.transaction(async (tx) => {
+    if (children.length > 0) {
+      await tx
+        .delete(categories)
+        .where(and(eq(categories.userId, userId), inArray(categories.id, children.map((c) => c.id))));
+    }
+    await tx.delete(categories).where(and(eq(categories.id, id), eq(categories.userId, userId)));
+  });
 }

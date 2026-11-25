@@ -13,12 +13,14 @@ import { getCategoryIcon } from "@/lib/icons";
 import { cn, formatMoney } from "@/lib/utils";
 import { PiggyBank, Plus } from "lucide-react";
 import type { ApiBudget } from "@/types/api";
+import { ConfirmDialog, type ConfirmRequest } from "@/components/ui/confirm-dialog";
 
 export default function BudgetsPage() {
   const { data: budgets, isLoading } = useBudgets();
   const deleteMutation = useDeleteBudget();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiBudget | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   return (
     <div className="space-y-6">
@@ -98,7 +100,16 @@ export default function BudgetsPage() {
                       size="sm"
                       variant="ghost"
                       className="text-negative"
-                      onClick={() => deleteMutation.mutate(budget.id)}
+                      onClick={() =>
+                        setConfirm({
+                          title: `Remove the ${budget.category?.name ?? ""} budget?`,
+                          description: "Your transactions aren\u2019t affected \u2014 only this spending limit is removed.",
+                          confirmLabel: "Remove",
+                          onConfirm: async () => {
+                            await deleteMutation.mutateAsync(budget.id);
+                          },
+                        })
+                      }
                     >
                       Remove
                     </Button>
@@ -109,6 +120,8 @@ export default function BudgetsPage() {
           })}
         </div>
       )}
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add budget">
         <BudgetForm onDone={() => setModalOpen(false)} />

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WalletStack } from "@/components/accounts/wallet-stack";
+import { ConfirmDialog, type ConfirmRequest } from "@/components/ui/confirm-dialog";
 import { Landmark, Plus } from "lucide-react";
 import { formatMoney } from "@/lib/utils";
 import type { ApiAccount } from "@/types/api";
@@ -24,13 +25,26 @@ export default function AccountsPage() {
     await updateMutation.mutateAsync({ id: account.id, input: { isActive: !account.isActive } });
   }
 
-  async function remove(account: ApiAccount) {
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
+
+  function remove(account: ApiAccount) {
     setActionError(null);
-    try {
-      await deleteMutation.mutateAsync(account.id);
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Couldn't delete this account.");
-    }
+    setConfirm({
+      title: `Delete the \u201c${account.name}\u201d wallet?`,
+      description:
+        "This can\u2019t be undone. Wallets that already have transactions can\u2019t be deleted \u2014 archive them instead to hide them and keep your history.",
+      onConfirm: async () => {
+        await deleteMutation.mutateAsync(account.id);
+      },
+      fallback: account.isActive
+        ? {
+            label: "Archive instead",
+            onClick: async () => {
+              await updateMutation.mutateAsync({ id: account.id, input: { isActive: false } });
+            },
+          }
+        : undefined,
+    });
   }
 
   const active = (accounts ?? []).filter((a) => a.isActive);
@@ -74,6 +88,8 @@ export default function AccountsPage() {
       ) : (
         <WalletStack accounts={accounts} onEdit={setEditing} onToggleActive={toggleActive} onDelete={remove} />
       )}
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add wallet">
         <AccountForm onDone={() => setModalOpen(false)} />

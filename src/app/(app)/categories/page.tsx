@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getCategoryColorClasses } from "@/lib/category-colors";
 import { getCategoryIcon } from "@/lib/icons";
 import type { ApiCategory, CategoryType } from "@/types/api";
+import { ConfirmDialog, type ConfirmRequest } from "@/components/ui/confirm-dialog";
 import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -94,7 +95,7 @@ function CategoryGroup({
                     <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${colors.bg} ${colors.text}`}>
                       <Icon size={19} />
                     </div>
-                    <span className="truncate font-bold text-ink">{parent.name}</span>
+                    <span className="break-words font-bold leading-tight text-ink">{parent.name}</span>
                     {parent.isArchived && <Badge tone="neutral">Archived</Badge>}
                   </div>
                   <RowActions category={parent} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />
@@ -107,7 +108,7 @@ function CategoryGroup({
                       <li key={child.id} className="flex items-center justify-between gap-2 text-sm">
                         <span className="flex min-w-0 items-center gap-2 font-semibold text-ink-muted">
                           <ChildIcon size={15} className={`shrink-0 ${colors.text}`} />
-                          <span className="truncate">{child.name}</span>
+                          <span className="break-words leading-tight">{child.name}</span>
                         </span>
                         <RowActions category={child} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} small />
                       </li>
@@ -131,18 +132,41 @@ export default function CategoriesPage() {
   const [modalType, setModalType] = useState<CategoryType | null>(null);
   const [editing, setEditing] = useState<ApiCategory | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmRequest | null>(null);
 
   async function archive(category: ApiCategory) {
     await updateMutation.mutateAsync({ id: category.id, input: { isArchived: !category.isArchived } });
   }
 
-  async function remove(category: ApiCategory) {
+  function remove(category: ApiCategory) {
     setActionError(null);
-    try {
-      await deleteMutation.mutateAsync(category.id);
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Couldn't delete this category.");
-    }
+    const children = (categories ?? []).filter((c) => c.parentId === category.id);
+    setConfirm({
+      title: `Delete \u201c${category.name}\u201d?`,
+      description: (
+        <>
+          {children.length > 0 && (
+            <span className="mb-2 block">
+              Its {children.length} {children.length === 1 ? "subcategory" : "subcategories"} will be deleted too:{" "}
+              <span className="font-semibold text-ink">{children.map((c) => c.name).join(", ")}</span>.
+            </span>
+          )}
+          This can&rsquo;t be undone. If you might need it later, archive it instead &mdash; it&rsquo;ll be hidden but
+          kept.
+        </>
+      ),
+      onConfirm: async () => {
+        await deleteMutation.mutateAsync(category.id);
+      },
+      fallback: category.isArchived
+        ? undefined
+        : {
+            label: "Archive instead",
+            onClick: async () => {
+              await updateMutation.mutateAsync({ id: category.id, input: { isArchived: true } });
+            },
+          },
+    });
   }
 
   const expense = (categories ?? []).filter((c) => c.type === "EXPENSE");
@@ -183,6 +207,8 @@ export default function CategoriesPage() {
           <CategoryGroup title="Income" categories={income} onEdit={setEditing} onArchive={archive} onDelete={remove} />
         </div>
       )}
+
+      <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
 
       <Modal open={Boolean(modalType)} onClose={() => setModalType(null)} title="Add category">
         {modalType && <CategoryForm defaultType={modalType} onDone={() => setModalType(null)} />}

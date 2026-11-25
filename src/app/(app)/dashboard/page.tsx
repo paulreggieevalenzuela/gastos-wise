@@ -3,6 +3,7 @@ import { ArrowRight, Receipt } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { getUserById } from "@/lib/services/auth";
 import { getDashboardSummary } from "@/lib/services/dashboard";
+import { applyStarterDataSafely } from "@/lib/services/onboarding";
 import { WalletCard } from "@/components/dashboard/wallet-card";
 import { SpendingMeter } from "@/components/dashboard/spending-meter";
 import { InsightTiles } from "@/components/dashboard/insight-tiles";
@@ -26,6 +27,9 @@ function SectionLink({ href, children }: { href: string; children: React.ReactNo
 export default async function DashboardPage() {
   const session = await getSession();
   const user = await getUserById(session!.userId);
+  // Same once-only step as the app layout; awaited here too so the very first
+  // dashboard render already includes the starter wallet and categories.
+  if (user && !user.starterDataAppliedAt) await applyStarterDataSafely(user.id);
   const currency = user?.currency ?? "PHP";
   const summary = await getDashboardSummary(session!.userId);
 

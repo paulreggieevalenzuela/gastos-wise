@@ -12,6 +12,7 @@ import {
   Tags,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
+import { useAddTransaction } from "@/components/transactions/add-transaction-provider";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -29,6 +30,7 @@ function isActive(pathname: string, href: string) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const openAddTransaction = useAddTransaction();
 
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface/70 px-4 py-5 backdrop-blur md:flex">
@@ -36,13 +38,14 @@ export function Sidebar() {
         <Logo />
       </Link>
 
-      <Link
-        href="/transactions?new=1"
+      <button
+        type="button"
+        onClick={openAddTransaction}
         className="gw-press mt-7 flex h-11 items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-ink shadow-glow transition hover:brightness-110"
       >
         <Plus size={18} strokeWidth={2.5} />
         Add transaction
-      </Link>
+      </button>
 
       <nav className="mt-6 flex-1 space-y-1">
         {NAV_ITEMS.map((item) => {
@@ -85,6 +88,7 @@ const MOBILE_RIGHT = [
  */
 export function MobileNav() {
   const pathname = usePathname();
+  const openAddTransaction = useAddTransaction();
 
   const renderItem = (item: (typeof MOBILE_LEFT)[number] | (typeof MOBILE_RIGHT)[number]) => {
     const active = isActive(pathname, item.href);
@@ -117,13 +121,14 @@ export function MobileNav() {
       <div className="gw-glass mx-auto flex max-w-md items-center rounded-[26px] border border-border bg-surface/85 px-2 py-1.5 shadow-float backdrop-blur-xl">
         {MOBILE_LEFT.map(renderItem)}
         <div className="flex flex-1 justify-center">
-          <Link
-            href="/transactions?new=1"
+          <button
+            type="button"
+            onClick={openAddTransaction}
             aria-label="Add transaction"
             className="gw-press -mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-strong text-accent-ink shadow-glow ring-4 ring-bg"
           >
             <Plus size={26} strokeWidth={2.5} />
-          </Link>
+          </button>
         </div>
         {MOBILE_RIGHT.map(renderItem)}
       </div>

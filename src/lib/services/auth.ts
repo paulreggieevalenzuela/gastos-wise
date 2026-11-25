@@ -8,6 +8,7 @@ import { generateToken, hashToken } from "@/lib/auth/tokens";
 import { sendEmail } from "@/lib/email/client";
 import { verifyEmailTemplate, resetPasswordTemplate } from "@/lib/email/templates";
 import { ConflictError } from "@/lib/api/handler";
+import { applyStarterData } from "@/lib/services/onboarding";
 
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -62,12 +63,17 @@ export async function registerUser(input: RegisterInput): Promise<User> {
   const passwordHash = await hashPassword(input.password);
   const userId = createId();
 
-  await db.insert(schema.users).values({
-    id: userId,
-    username: input.username,
-    email: input.email,
-    passwordHash,
-    name: input.name?.trim() || input.username,
+  // The account and its starter Cash wallet + default categories are
+  // created together, so a new user never lands on an empty app.
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.users).values({
+      id: userId,
+      username: input.username,
+      email: input.email,
+      passwordHash,
+      name: input.name?.trim() || input.username,
+    });
+    await applyStarterData(userId, tx);
   });
 
   const user = await getUserById(userId);
