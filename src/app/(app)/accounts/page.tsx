@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
-import { WalletMiniCard } from "@/components/accounts/wallet-mini-card";
-import { Archive, ArchiveRestore, Landmark, Pencil, Plus, Trash2 } from "lucide-react";
+import { WalletStack } from "@/components/accounts/wallet-stack";
+import { Landmark, Plus } from "lucide-react";
 import { formatMoney } from "@/lib/utils";
 import type { ApiAccount } from "@/types/api";
 
@@ -72,41 +72,7 @@ export default function AccountsPage() {
           action={<Button onClick={() => setModalOpen(true)}>Add wallet</Button>}
         />
       ) : (
-        <div className="gw-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {accounts.map((account, index) => (
-            <div key={account.id} style={{ ["--i" as string]: index }} className={!account.isActive ? "opacity-55" : undefined}>
-              <WalletMiniCard
-                name={account.name}
-                type={account.type}
-                icon={account.icon}
-                balance={account.balance}
-                currency={account.currency}
-                className="transition-transform duration-300 hover:-translate-y-1"
-              />
-              <div className="mt-2.5 flex items-center gap-1.5 px-1">
-                {!account.isActive && <Badge tone="neutral">Archived</Badge>}
-                <div className="ml-auto flex gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => setEditing(account)}>
-                    <Pencil size={14} /> Edit
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => toggleActive(account)}>
-                    {account.isActive ? <Archive size={14} /> : <ArchiveRestore size={14} />}
-                    {account.isActive ? "Archive" : "Restore"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-negative hover:bg-negative-soft hover:text-negative"
-                    onClick={() => remove(account)}
-                    aria-label={`Delete ${account.name}`}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <WalletStack accounts={accounts} onEdit={setEditing} onToggleActive={toggleActive} onDelete={remove} />
       )}
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add wallet">

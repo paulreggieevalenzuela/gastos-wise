@@ -5,9 +5,18 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { Picker } from "@/components/ui/picker";
+
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { AccentPicker } from "@/components/theme/accent-picker";
+
+const CURRENCIES = [
+  { code: "PHP", name: "Philippine Peso", symbol: "₱" },
+  { code: "USD", name: "US Dollar", symbol: "$" },
+  { code: "EUR", name: "Euro", symbol: "€" },
+  { code: "SGD", name: "Singapore Dollar", symbol: "S$" },
+] as const;
 
 interface MeResponse {
   user: {
@@ -88,12 +97,22 @@ export default function SettingsPage() {
             <p className="-mt-2 text-xs text-ink-faint">You can sign in with either one.</p>
             <div>
               <Label htmlFor="currency">Currency</Label>
-              <Select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                <option value="PHP">PHP — Philippine Peso</option>
-                <option value="USD">USD — US Dollar</option>
-                <option value="EUR">EUR — Euro</option>
-                <option value="SGD">SGD — Singapore Dollar</option>
-              </Select>
+              <Picker
+                id="currency"
+                title="Currency"
+                aria-label="Currency"
+                value={currency}
+                onChange={setCurrency}
+                options={CURRENCIES.map((c) => ({
+                  value: c.code,
+                  label: `${c.code} — ${c.name}`,
+                  icon: (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft text-xs font-extrabold text-accent">
+                      {c.symbol}
+                    </span>
+                  ),
+                }))}
+              />
             </div>
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={saving}>

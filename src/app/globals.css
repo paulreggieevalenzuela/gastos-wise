@@ -165,6 +165,15 @@ select.gw-select {
   }
 }
 
+@keyframes gw-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
 @keyframes gw-shine {
   from {
     transform: translateX(-120%) skewX(-20deg);
@@ -183,6 +192,11 @@ select.gw-select {
 .gw-stagger > * {
   animation: gw-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.gw-grow-y {
+  transform-origin: bottom;
+  animation: gw-grow-y 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .gw-pop {
@@ -228,9 +242,20 @@ select.gw-select {
   transform: scale(0.97);
 }
 
+/* Frosted glass on the header and tab bar. People who ask their phone to
+   reduce transparency get a solid bar instead (also cheaper to draw). */
+@media (prefers-reduced-transparency: reduce) {
+  .gw-glass {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: rgb(var(--color-surface)) !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gw-page,
   .gw-stagger > *,
+  .gw-grow-y,
   .gw-pop,
   .gw-fade,
   .gw-sheet,

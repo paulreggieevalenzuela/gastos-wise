@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useCategories } from "@/hooks/use-categories";
 import { useCreateBudget, useUpdateBudget } from "@/hooks/use-budgets";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select, FieldError } from "@/components/ui/input";
+import { Input, Label, FieldError } from "@/components/ui/input";
+import { Picker } from "@/components/ui/picker";
+import { IconTile } from "@/components/ui/icon-tile";
+import { CategoryBadge } from "@/components/categories/category-badge";
+import { Calendar, CalendarDays, CalendarRange } from "lucide-react";
 import type { ApiBudget, BudgetPeriod } from "@/types/api";
 
 export function BudgetForm({ budget, onDone }: { budget?: ApiBudget; onDone: () => void }) {
@@ -60,19 +64,21 @@ export function BudgetForm({ budget, onDone }: { budget?: ApiBudget; onDone: () 
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <Label htmlFor="category">Category</Label>
-        <Select
+        <Picker
           id="category"
+          title="Budget for"
+          aria-label="Category"
           value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
+          onChange={setCategoryId}
           disabled={isEdit}
-          required
-        >
-          {expenseCategories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.parentId ? `— ${c.name}` : c.name}
-            </option>
-          ))}
-        </Select>
+          placeholder="Choose a category"
+          options={expenseCategories.map((c) => ({
+            value: c.id,
+            label: c.name,
+            indent: Boolean(c.parentId),
+            icon: <CategoryBadge icon={c.icon} name={c.name} color={c.color} />,
+          }))}
+        />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -87,11 +93,18 @@ export function BudgetForm({ budget, onDone }: { budget?: ApiBudget; onDone: () 
         </div>
         <div>
           <Label htmlFor="period">Period</Label>
-          <Select id="period" value={period} onChange={(e) => setPeriod(e.target.value as BudgetPeriod)}>
-            <option value="MONTHLY">Monthly</option>
-            <option value="WEEKLY">Weekly</option>
-            <option value="YEARLY">Yearly</option>
-          </Select>
+          <Picker
+            id="period"
+            title="Period"
+            aria-label="Period"
+            value={period}
+            onChange={(v) => setPeriod(v as BudgetPeriod)}
+            options={[
+              { value: "WEEKLY", label: "Weekly", icon: <IconTile icon={CalendarDays} size={26} /> },
+              { value: "MONTHLY", label: "Monthly", icon: <IconTile icon={Calendar} size={26} /> },
+              { value: "YEARLY", label: "Yearly", icon: <IconTile icon={CalendarRange} size={26} /> },
+            ]}
+          />
         </div>
       </div>
       <FieldError>{error ?? undefined}</FieldError>

@@ -114,7 +114,7 @@ export function MobileNav() {
 
   return (
     <nav className="bottom-safe fixed inset-x-3 z-40 md:hidden" aria-label="Main">
-      <div className="mx-auto flex max-w-md items-center rounded-[26px] border border-border bg-surface/85 px-2 py-1.5 shadow-float backdrop-blur-xl">
+      <div className="gw-glass mx-auto flex max-w-md items-center rounded-[26px] border border-border bg-surface/85 px-2 py-1.5 shadow-float backdrop-blur-xl">
         {MOBILE_LEFT.map(renderItem)}
         <div className="flex flex-1 justify-center">
           <Link

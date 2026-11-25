@@ -7,13 +7,17 @@ import { useCategories } from "@/hooks/use-categories";
 import { useDeleteTransaction, useTransactions } from "@/hooks/use-transactions";
 import { TransactionRow } from "@/components/transactions/transaction-row";
 import { TransactionForm } from "@/components/transactions/transaction-form";
+import { AddTransactionPanel } from "@/components/transactions/add-transaction-panel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/input";
+import { Picker } from "@/components/ui/picker";
+import { IconTile } from "@/components/ui/icon-tile";
+import { InstitutionIcon } from "@/components/accounts/institution-icon";
+import { CategoryBadge } from "@/components/categories/category-badge";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { ApiTransaction } from "@/types/api";
-import { Plus, Receipt } from "lucide-react";
+import { Layers, Plus, Receipt, Tags } from "lucide-react";
 import { cn, formatMoney, formatRelativeDay } from "@/lib/utils";
 
 const TYPE_FILTERS = [
@@ -100,38 +104,47 @@ function TransactionsPageInner() {
           ))}
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex">
-          <Select
-            value={accountId}
-            onChange={(e) => {
-              setAccountId(e.target.value);
-              setPage(1);
-            }}
-            className="sm:w-56"
-            aria-label="Filter by wallet"
-          >
-            <option value="">All wallets</option>
-            {filterOptions.accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value);
-              setPage(1);
-            }}
-            className="sm:w-56"
-            aria-label="Filter by category"
-          >
-            <option value="">All categories</option>
-            {filterOptions.categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
+          <div className="min-w-0 sm:w-60">
+            <Picker
+              aria-label="Filter by wallet"
+              title="Wallet"
+              value={accountId}
+              onChange={(v) => {
+                setAccountId(v);
+                setPage(1);
+              }}
+              options={[
+                { value: "", label: "All wallets", icon: <IconTile icon={Layers} size={24} /> },
+                ...filterOptions.accounts.map((a) => ({
+                  value: a.id,
+                  label: a.name,
+                  hint: formatMoney(a.balance, a.currency),
+                  icon: <InstitutionIcon icon={a.icon} type={a.type} size={24} />,
+                })),
+              ]}
+            />
+          </div>
+          <div className="min-w-0 sm:w-60">
+            <Picker
+              aria-label="Filter by category"
+              title="Category"
+              value={categoryId}
+              onChange={(v) => {
+                setCategoryId(v);
+                setPage(1);
+              }}
+              options={[
+                { value: "", label: "All categories", icon: <IconTile icon={Tags} size={24} /> },
+                ...filterOptions.categories.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  hint: c.type === "INCOME" ? "Income" : undefined,
+                  indent: Boolean(c.parentId),
+                  icon: <CategoryBadge icon={c.icon} name={c.name} color={c.color} size={24} />,
+                })),
+              ]}
+            />
+          </div>
         </div>
       </div>
 
@@ -192,7 +205,7 @@ function TransactionsPageInner() {
       )}
 
       <Modal open={modalOpen} onClose={closeModal} title="Add transaction">
-        {modalOpen && <TransactionForm onDone={closeModal} />}
+        {modalOpen && <AddTransactionPanel onDone={closeModal} />}
       </Modal>
 
       <Modal open={Boolean(editing)} onClose={() => setEditing(null)} title="Edit transaction">

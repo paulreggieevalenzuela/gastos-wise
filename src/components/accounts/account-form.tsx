@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useCreateAccount, useUpdateAccount } from "@/hooks/use-accounts";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select, FieldError } from "@/components/ui/input";
+import { Input, Label, FieldError } from "@/components/ui/input";
+import { Picker } from "@/components/ui/picker";
+import { IconTile } from "@/components/ui/icon-tile";
+import { ACCOUNT_TYPE_ICONS } from "@/lib/icons";
 import { InstitutionIcon } from "@/components/accounts/institution-icon";
 import { INSTITUTIONS, getInstitution } from "@/lib/institutions";
 import type { ApiAccount, AccountType } from "@/types/api";
@@ -16,6 +19,15 @@ const ACCOUNT_TYPES: { value: AccountType; label: string }[] = [
   { value: "CREDIT_CARD", label: "Credit card" },
   { value: "OTHER", label: "Other" },
 ];
+
+const TYPE_LABEL: Record<AccountType, string> = {
+  CASH: "Cash",
+  BANK: "Bank",
+  EWALLET: "E-wallet",
+  SAVINGS: "Savings",
+  CREDIT_CARD: "Credit card",
+  OTHER: "Other",
+};
 
 export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone: () => void }) {
   const isEdit = Boolean(account);
@@ -72,22 +84,27 @@ export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone:
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <Label htmlFor="institution">Institution</Label>
-        <div className="flex items-center gap-3">
-          <InstitutionIcon icon={institutionKey === "custom" ? null : institutionKey} type={type} size={36} />
-          <Select
-            id="institution"
-            value={institutionKey}
-            onChange={(e) => onInstitutionChange(e.target.value)}
-            className="flex-1"
-          >
-            <option value="custom">Custom / other</option>
-            {INSTITUTIONS.map((i) => (
-              <option key={i.key} value={i.key}>
-                {i.label}
-              </option>
-            ))}
-          </Select>
-        </div>
+        <Picker
+          id="institution"
+          title="Bank or e-wallet"
+          aria-label="Institution"
+          value={institutionKey}
+          onChange={onInstitutionChange}
+          options={[
+            {
+              value: "custom",
+              label: "Custom / other",
+              hint: "Any account not listed",
+              icon: <InstitutionIcon icon={null} type={type} size={28} />,
+            },
+            ...INSTITUTIONS.map((i) => ({
+              value: i.key,
+              label: i.label,
+              hint: TYPE_LABEL[i.type] === i.label ? undefined : TYPE_LABEL[i.type],
+              icon: <InstitutionIcon icon={i.key} type={i.type} size={28} />,
+            })),
+          ]}
+        />
       </div>
       <div>
         <Label htmlFor="name">Name</Label>
@@ -95,13 +112,18 @@ export function AccountForm({ account, onDone }: { account?: ApiAccount; onDone:
       </div>
       <div>
         <Label htmlFor="type">Type</Label>
-        <Select id="type" value={type} onChange={(e) => setType(e.target.value as AccountType)}>
-          {ACCOUNT_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </Select>
+        <Picker
+          id="type"
+          title="Account type"
+          aria-label="Account type"
+          value={type}
+          onChange={(v) => setType(v as AccountType)}
+          options={ACCOUNT_TYPES.map((t) => ({
+            value: t.value,
+            label: t.label,
+            icon: <IconTile icon={ACCOUNT_TYPE_ICONS[t.value]} />,
+          }))}
+        />
       </div>
       <div>
         <Label htmlFor="initialBalance">

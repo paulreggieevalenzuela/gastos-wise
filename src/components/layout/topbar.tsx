@@ -18,7 +18,7 @@ export function Topbar({ name, email }: { name: string; email?: string }) {
   useEffect(() => setHello(greeting()), []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-bg/80 backdrop-blur-xl">
+    <header className="gw-glass sticky top-0 z-50 border-b border-border/70 bg-bg/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 md:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <span className="md:hidden">

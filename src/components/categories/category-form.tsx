@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useCategories, useCreateCategory, useUpdateCategory } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Select, FieldError } from "@/components/ui/input";
+import { Input, Label, FieldError } from "@/components/ui/input";
+import { Picker } from "@/components/ui/picker";
+import { IconTile } from "@/components/ui/icon-tile";
+import { CategoryBadge } from "@/components/categories/category-badge";
+import { Layers } from "lucide-react";
 import { CATEGORY_COLOR_OPTIONS, getCategoryColorClasses } from "@/lib/category-colors";
 import { CATEGORY_ICON_OPTIONS, getCategoryIcon, guessCategoryIcon } from "@/lib/icons";
 import type { ApiCategory, CategoryType } from "@/types/api";
@@ -86,14 +90,21 @@ export function CategoryForm({
 
       <div>
         <Label htmlFor="parent">Parent category (optional)</Label>
-        <Select id="parent" value={parentId} onChange={(e) => setParentId(e.target.value)}>
-          <option value="">None — top level</option>
-          {parentOptions.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
+        <Picker
+          id="parent"
+          title="Parent category"
+          aria-label="Parent category"
+          value={parentId}
+          onChange={setParentId}
+          options={[
+            { value: "", label: "None — top level", icon: <IconTile icon={Layers} /> },
+            ...parentOptions.map((c) => ({
+              value: c.id,
+              label: c.name,
+              icon: <CategoryBadge icon={c.icon} name={c.name} color={c.color} />,
+            })),
+          ]}
+        />
       </div>
 
       <div>

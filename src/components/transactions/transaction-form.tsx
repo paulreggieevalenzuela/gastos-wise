@@ -18,9 +18,21 @@ const TYPE_TABS: { value: TransactionType; label: string }[] = [
   { value: "TRANSFER", label: "Transfer" },
 ];
 
+/** YYYY-MM-DD in the person's own timezone (toISOString would use UTC — yesterday, before 8am in PH). */
 function toDateInputValue(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+export interface TransactionFormInitial {
+  type?: TransactionType;
+  accountId?: string | null;
+  transferAccountId?: string | null;
+  categoryId?: string | null;
+  amount?: number | null;
+  merchant?: string | null;
+  daysAgo?: number;
 }
 
 function AccountPicker({
@@ -70,9 +82,12 @@ function AccountPicker({
 
 export function TransactionForm({
   transaction,
+  initial,
   onDone,
 }: {
   transaction?: ApiTransaction;
+  /** Prefill for a new transaction (e.g. from Quick add). */
+  initial?: TransactionFormInitial;
   onDone: () => void;
 }) {
   const isEdit = Boolean(transaction);
@@ -81,13 +96,21 @@ export function TransactionForm({
   const createMutation = useCreateTransaction();
   const updateMutation = useUpdateTransaction();
 
-  const [type, setType] = useState<TransactionType>(transaction?.type ?? "EXPENSE");
-  const [accountId, setAccountId] = useState(transaction?.accountId ?? "");
-  const [transferAccountId, setTransferAccountId] = useState(transaction?.transferAccountId ?? "");
-  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? "");
-  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : "");
-  const [date, setDate] = useState(toDateInputValue(transaction?.transactionDate ?? new Date()));
-  const [merchant, setMerchant] = useState(transaction?.merchant ?? "");
+  const [type, setType] = useState<TransactionType>(transaction?.type ?? initial?.type ?? "EXPENSE");
+  const [accountId, setAccountId] = useState(transaction?.accountId ?? initial?.accountId ?? "");
+  const [transferAccountId, setTransferAccountId] = useState(
+    transaction?.transferAccountId ?? initial?.transferAccountId ?? "",
+  );
+  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? initial?.categoryId ?? "");
+  const [amount, setAmount] = useState(
+    transaction ? String(transaction.amount) : initial?.amount != null ? String(initial.amount) : "",
+  );
+  const [date, setDate] = useState(
+    toDateInputValue(
+      transaction?.transactionDate ?? new Date(Date.now() - (initial?.daysAgo ?? 0) * 86_400_000),
+    ),
+  );
+  const [merchant, setMerchant] = useState(transaction?.merchant ?? initial?.merchant ?? "");
   const [description, setDescription] = useState(transaction?.description ?? "");
   const [notes, setNotes] = useState(transaction?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
