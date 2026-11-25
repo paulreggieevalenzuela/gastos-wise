@@ -1,4 +1,5 @@
 import { RegisterForm } from "@/components/auth/register-form";
+import { AuthFooterLinks } from "@/components/auth/auth-footer-links";
 
 export default function RegisterPage() {
   return (
@@ -13,6 +14,7 @@ export default function RegisterPage() {
         <div className="rounded-lg border border-border bg-surface p-6 shadow-card">
           <RegisterForm />
         </div>
+        <AuthFooterLinks />
       </div>
     </main>
   );

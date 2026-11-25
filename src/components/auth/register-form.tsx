@@ -11,6 +11,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
@@ -21,6 +22,11 @@ export function RegisterForm() {
 
     if (password !== confirmPassword) {
       setError("Passwords don't match.");
+      return;
+    }
+
+    if (!agreeTerms) {
+      setError("Please agree to the Terms and Privacy Policy to continue.");
       return;
     }
 
@@ -112,6 +118,26 @@ export function RegisterForm() {
           required
         />
       </div>
+      <label className="flex items-start gap-2 text-sm text-ink-muted">
+        <input
+          type="checkbox"
+          checked={agreeTerms}
+          onChange={(e) => setAgreeTerms(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-accent focus:ring-accent"
+          required
+        />
+        <span>
+          I agree to the{" "}
+          <Link href="/terms" target="_blank" className="font-medium text-accent hover:underline">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" target="_blank" className="font-medium text-accent hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </span>
+      </label>
       <FieldError>{error ?? undefined}</FieldError>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Creating account…" : "Create account"}
