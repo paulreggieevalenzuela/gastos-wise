@@ -67,10 +67,10 @@ async function main() {
 
   if (!accountCount) {
     const accountSeed = [
-      { name: "Cash", type: "CASH" as const, initialBalance: "2500.00" },
-      { name: "BDO", type: "BANK" as const, initialBalance: "45000.00" },
-      { name: "GCash", type: "EWALLET" as const, initialBalance: "3200.00" },
-      { name: "Savings", type: "SAVINGS" as const, initialBalance: "75000.00" },
+      { name: "Cash", type: "CASH" as const, icon: "cash", initialBalance: "2500.00" },
+      { name: "BDO", type: "BANK" as const, icon: "bdo", initialBalance: "45000.00" },
+      { name: "GCash", type: "EWALLET" as const, icon: "gcash", initialBalance: "3200.00" },
+      { name: "Savings", type: "SAVINGS" as const, icon: null, initialBalance: "75000.00" },
     ];
     await db.insert(schema.accounts).values(
       accountSeed.map((a, i) => ({
@@ -78,6 +78,7 @@ async function main() {
         userId,
         name: a.name,
         type: a.type,
+        icon: a.icon,
         initialBalance: a.initialBalance,
         sortOrder: i,
       })),
@@ -92,8 +93,26 @@ async function main() {
   if (!categoryCount) {
     type ChildCategory = string | { name: string; icon?: string };
     const expenseCategories = [
-      { name: "Food", icon: "utensils", color: "amber", children: ["Restaurants", "Groceries", "Coffee"] as ChildCategory[] },
-      { name: "Transportation", icon: "car", color: "sky", children: ["Grab", "Fuel", "Parking"] as ChildCategory[] },
+      {
+        name: "Food",
+        icon: "utensils",
+        color: "amber",
+        children: [
+          { name: "Restaurants", icon: "utensils" },
+          { name: "Groceries", icon: "shopping-cart" },
+          { name: "Coffee", icon: "coffee" },
+        ] as ChildCategory[],
+      },
+      {
+        name: "Transportation",
+        icon: "car",
+        color: "sky",
+        children: [
+          { name: "Grab", icon: "taxi" },
+          { name: "Fuel", icon: "fuel" },
+          { name: "Parking", icon: "parking" },
+        ] as ChildCategory[],
+      },
       {
         name: "Bills",
         icon: "receipt",

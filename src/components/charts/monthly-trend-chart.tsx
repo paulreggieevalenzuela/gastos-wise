@@ -32,7 +32,7 @@ function CustomTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-md border border-border bg-surface px-3 py-2 text-xs shadow-card">
+    <div className="rounded-xl border border-border bg-surface px-3 py-2 text-xs shadow-float">
       <p className="mb-1 font-medium text-ink">{label}</p>
       {payload.map((p) => (
         <p key={p.dataKey} className="flex items-center justify-between gap-4 text-ink-muted">
@@ -45,16 +45,16 @@ function CustomTooltip({
 }
 
 export function MonthlyTrendChart({ data, currency }: { data: TrendPoint[]; currency: string }) {
-  const positive = useCssColor("--color-positive", "rgb(31 111 84)");
+  const positive = useCssColor("--color-accent", "rgb(31 111 84)");
   const negative = useCssColor("--color-negative", "rgb(179 69 59)");
   const gridColor = useCssColor("--color-border", "rgb(226 224 216)");
   const inkMuted = useCssColor("--color-ink-muted", "rgb(75 90 84)");
 
   return (
-    <div className="h-64 w-full">
+    <div className="h-60 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} barGap={4} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
-          <CartesianGrid stroke={gridColor} vertical={false} />
+          <CartesianGrid stroke={gridColor} strokeDasharray="4 6" vertical={false} />
           <XAxis
             dataKey="month"
             axisLine={false}
@@ -74,8 +74,8 @@ export function MonthlyTrendChart({ data, currency }: { data: TrendPoint[]; curr
             iconSize={8}
             wrapperStyle={{ fontSize: 12, color: inkMuted }}
           />
-          <Bar dataKey="income" name="Income" fill={positive} radius={[4, 4, 0, 0]} maxBarSize={20} />
-          <Bar dataKey="expense" name="Expense" fill={negative} radius={[4, 4, 0, 0]} maxBarSize={20} />
+          <Bar dataKey="income" name="Income" fill={positive} radius={[8, 8, 8, 8]} maxBarSize={18} animationDuration={900} />
+          <Bar dataKey="expense" name="Expense" fill={negative} fillOpacity={0.85} radius={[8, 8, 8, 8]} maxBarSize={18} animationDuration={900} />
         </BarChart>
       </ResponsiveContainer>
     </div>

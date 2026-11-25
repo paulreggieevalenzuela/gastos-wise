@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AvatarMenu } from "@/components/layout/avatar-menu";
+import { Logo } from "@/components/layout/logo";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -10,13 +12,25 @@ function greeting(): string {
 }
 
 export function Topbar({ name, email }: { name: string; email?: string }) {
+  // Greeting depends on the visitor's clock, so render it after mount to
+  // avoid a server/client mismatch.
+  const [hello, setHello] = useState<string | null>(null);
+  useEffect(() => setHello(greeting()), []);
+
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 md:px-8">
-      <div>
-        <p className="text-xs text-ink-faint">{greeting()}</p>
-        <p className="font-display text-lg text-ink">{name}</p>
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-bg/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 md:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="md:hidden">
+            <Logo compact />
+          </span>
+          <div className="min-w-0">
+            <p className="h-4 text-xs font-medium text-ink-faint">{hello}</p>
+            <p className="truncate text-[15px] font-bold text-ink">{name}</p>
+          </div>
+        </div>
+        <AvatarMenu name={name} email={email} />
       </div>
-      <AvatarMenu name={name} email={email} />
     </header>
   );
 }

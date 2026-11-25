@@ -1,15 +1,27 @@
 import Link from "next/link";
+import { ArrowRight, Receipt } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { getUserById } from "@/lib/services/auth";
 import { getDashboardSummary } from "@/lib/services/dashboard";
-import { StatTile } from "@/components/dashboard/stat-tile";
+import { WalletCard } from "@/components/dashboard/wallet-card";
+import { SpendingMeter } from "@/components/dashboard/spending-meter";
+import { InsightTiles } from "@/components/dashboard/insight-tiles";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { MonthlyTrendChart } from "@/components/charts/monthly-trend-chart";
 import { TransactionRow } from "@/components/transactions/transaction-row";
+import { WalletMiniCard } from "@/components/accounts/wallet-mini-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { formatMoney } from "@/lib/utils";
+
+function SectionLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className="inline-flex items-center gap-1 text-xs font-bold text-accent hover:underline">
+      {children}
+      <ArrowRight size={13} />
+    </Link>
+  );
+}
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -17,37 +29,74 @@ export default async function DashboardPage() {
   const currency = user?.currency ?? "PHP";
   const summary = await getDashboardSummary(session!.userId);
 
-  const now = new Date();
-  const monthLabel = new Intl.DateTimeFormat("en-PH", { month: "long", year: "numeric" }).format(now);
+  const monthLabel = new Intl.DateTimeFormat("en-PH", { month: "long", year: "numeric" }).format(new Date());
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-ink-faint">{monthLabel}</p>
-          <h1 className="font-display text-2xl text-ink">Overview</h1>
+          <p className="text-sm font-bold text-accent">{monthLabel}</p>
+          <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">Your money this month</h1>
         </div>
-        <Link href="/transactions?new=1">
-          <Button>Add transaction</Button>
-        </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Total balance" value={formatMoney(summary.totalBalance, currency)} />
-        <StatTile label="Income" value={formatMoney(summary.income, currency)} tone="positive" />
-        <StatTile label="Expenses" value={formatMoney(summary.expense, currency)} tone="negative" />
-        <StatTile
-          label="Net cash flow"
-          value={formatMoney(summary.net, currency)}
-          tone={summary.net >= 0 ? "positive" : "negative"}
-        />
+      <div className="grid gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <WalletCard
+            total={summary.totalBalance}
+            income={summary.income}
+            expense={summary.expense}
+            currency={currency}
+            accountCount={summary.accounts.length}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <SpendingMeter
+            spent={summary.spending.spent}
+            limit={summary.spending.limit}
+            available={summary.spending.available}
+            limitSource={summary.spending.limitSource}
+            currency={currency}
+          />
+        </div>
       </div>
+
+      <InsightTiles
+        weekly={summary.weekly}
+        lastPurchase={summary.lastPurchase}
+        net={summary.net}
+        dayBudget={summary.spending.dayBudget}
+        daysLeft={summary.spending.daysLeft}
+        currency={currency}
+      />
+
+      {summary.accounts.length > 0 && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-ink">Wallets</h2>
+            <SectionLink href="/accounts">Manage</SectionLink>
+          </div>
+          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:scroll-px-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 lg:grid-cols-4">
+            {summary.accounts.map((account) => (
+              <WalletMiniCard
+                key={account.id}
+                name={account.name}
+                type={account.type}
+                icon={account.icon}
+                balance={account.balance}
+                currency={account.currency}
+                className="w-[70%] shrink-0 snap-start sm:w-[45%] md:w-auto"
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Income vs. expenses</CardTitle>
-            <span className="text-xs text-ink-faint">Last 6 months</span>
+            <CardTitle>Income vs. spending</CardTitle>
+            <span className="text-xs font-semibold text-ink-faint">Last 6 months</span>
           </CardHeader>
           <CardContent>
             <MonthlyTrendChart data={summary.monthlyTrend} currency={currency} />
@@ -61,13 +110,12 @@ export default async function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Recent activity</CardTitle>
-          <Link href="/transactions" className="text-xs font-medium text-accent hover:underline">
-            View all
-          </Link>
+          <SectionLink href="/transactions">View all</SectionLink>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 pt-3 sm:px-4">
           {summary.recentTransactions.length === 0 ? (
             <EmptyState
+              icon={Receipt}
               title="No transactions yet"
               description="Record your first expense or income to get started."
               action={
@@ -77,9 +125,9 @@ export default async function DashboardPage() {
               }
             />
           ) : (
-            <div>
-              {summary.recentTransactions.map((t) => (
-                <TransactionRow key={t.id} transaction={t} />
+            <div className="gw-stagger">
+              {summary.recentTransactions.map((t, i) => (
+                <TransactionRow key={t.id} transaction={t} index={i} />
               ))}
             </div>
           )}

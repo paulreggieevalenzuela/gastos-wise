@@ -5,7 +5,7 @@ import { useCategories, useCreateCategory, useUpdateCategory } from "@/hooks/use
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { CATEGORY_COLOR_OPTIONS, getCategoryColorClasses } from "@/lib/category-colors";
-import { CATEGORY_ICON_OPTIONS, getCategoryIcon } from "@/lib/icons";
+import { CATEGORY_ICON_OPTIONS, getCategoryIcon, guessCategoryIcon } from "@/lib/icons";
 import type { ApiCategory, CategoryType } from "@/types/api";
 
 export function CategoryForm({
@@ -22,6 +22,8 @@ export function CategoryForm({
   const [name, setName] = useState(category?.name ?? "");
   const [type] = useState<CategoryType>(category?.type ?? defaultType);
   const [icon, setIcon] = useState(category?.icon ?? "circle");
+  // Until someone taps an icon, keep suggesting one from the name they type.
+  const [iconTouched, setIconTouched] = useState(Boolean(category));
   const [color, setColor] = useState(category?.color ?? "slate");
   const [parentId, setParentId] = useState(category?.parentId ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +71,17 @@ export function CategoryForm({
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <Label htmlFor="name">Name</Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (!iconTouched) setIcon(guessCategoryIcon(e.target.value) ?? "circle");
+          }}
+          placeholder="e.g. Meralco, Groceries, Netflix"
+          autoFocus
+          required
+        />
       </div>
 
       <div>
@@ -86,17 +98,21 @@ export function CategoryForm({
 
       <div>
         <Label>Icon</Label>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid max-h-48 grid-cols-6 gap-2 overflow-y-auto pr-0.5 sm:grid-cols-8">
           {CATEGORY_ICON_OPTIONS.map((opt) => {
             const Icon = getCategoryIcon(opt);
             return (
               <button
                 key={opt}
                 type="button"
-                onClick={() => setIcon(opt)}
+                title={opt}
+                onClick={() => {
+                  setIcon(opt);
+                  setIconTouched(true);
+                }}
                 aria-pressed={icon === opt}
-                className={`flex h-10 items-center justify-center rounded-md border ${
-                  icon === opt ? "border-accent bg-accent-soft text-accent" : "border-border text-ink-muted"
+                className={`gw-press flex h-10 items-center justify-center rounded-xl border transition-colors ${
+                  icon === opt ? "border-accent bg-accent-soft text-accent ring-2 ring-accent/20" : "border-border text-ink-muted hover:text-ink"
                 }`}
               >
                 <Icon size={16} />
@@ -117,7 +133,7 @@ export function CategoryForm({
                 type="button"
                 onClick={() => setColor(opt)}
                 aria-pressed={color === opt}
-                className={`h-7 w-7 rounded-full ${classes.dot} ${
+                className={`gw-press h-8 w-8 rounded-full ${classes.dot} ${
                   color === opt ? "ring-2 ring-ink ring-offset-2 ring-offset-surface" : ""
                 }`}
                 title={opt}

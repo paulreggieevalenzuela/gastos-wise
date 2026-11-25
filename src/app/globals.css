@@ -4,89 +4,58 @@
 
 /* ------------------------------------------------------------------ */
 /* Color tokens. Numbers are "R G B" triplets (no commas) so Tailwind  */
-/* can apply alpha via rgb(var(--x) / <alpha-value>). Four accent      */
-/* choices layer on top of light/dark via [data-accent] on <html>.     */
+/* can apply alpha via rgb(var(--x) / <alpha-value>).                  */
+/*                                                                     */
+/* These are only the fallback (default emerald) palette. The real     */
+/* palette is generated from the user's picked color by buildThemeCss  */
+/* in src/lib/color.ts and rendered as <style id="gw-theme">, which     */
+/* overrides every token below in both light and dark mode.            */
 /* ------------------------------------------------------------------ */
 
 :root {
-  --color-bg: 245 245 241;
-  --color-surface: 255 255 255;
-  --color-surface-raised: 238 237 231;
-  --color-border: 226 224 216;
-  --color-border-strong: 203 200 190;
-  --color-ink: 22 36 31;
-  --color-ink-muted: 75 90 84;
-  --color-ink-faint: 140 151 144;
+  --color-bg: 243 246 244;
+  --color-surface: 253 254 254;
+  --color-surface-raised: 233 238 235;
+  --color-border: 221 228 224;
+  --color-border-strong: 195 202 198;
+  --color-ink: 20 37 30;
+  --color-ink-muted: 87 101 95;
+  --color-ink-faint: 136 148 143;
 
-  --color-positive: 31 111 84;
-  --color-positive-soft: 217 232 225;
-  --color-negative: 179 69 59;
-  --color-negative-soft: 245 223 219;
-  --color-warning: 168 116 27;
-  --color-warning-soft: 247 232 205;
+  --color-positive: 22 143 98;
+  --color-positive-soft: 214 240 228;
+  --color-negative: 214 69 69;
+  --color-negative-soft: 250 226 224;
+  --color-warning: 196 128 18;
+  --color-warning-soft: 250 236 208;
 
-  /* default accent: emerald */
   --color-accent: 31 111 84;
+  --color-accent-strong: 20 76 57;
   --color-accent-ink: 255 255 255;
-  --color-accent-soft: 217 232 225;
-}
-
-:root[data-accent="navy"] {
-  --color-accent: 42 76 124;
-  --color-accent-ink: 255 255 255;
-  --color-accent-soft: 219 227 238;
-}
-
-:root[data-accent="plum"] {
-  --color-accent: 108 63 99;
-  --color-accent-ink: 255 255 255;
-  --color-accent-soft: 235 224 233;
-}
-
-:root[data-accent="rust"] {
-  --color-accent: 141 68 40;
-  --color-accent-ink: 255 255 255;
-  --color-accent-soft: 237 222 211;
+  --color-accent-soft: 219 237 230;
 }
 
 .dark {
-  --color-bg: 16 23 20;
-  --color-surface: 23 33 28;
-  --color-surface-raised: 28 40 34;
-  --color-border: 41 55 48;
-  --color-border-strong: 60 78 69;
-  --color-ink: 233 239 233;
-  --color-ink-muted: 168 182 174;
-  --color-ink-faint: 108 124 116;
+  --color-bg: 13 18 16;
+  --color-surface: 21 29 26;
+  --color-surface-raised: 30 40 36;
+  --color-border: 41 52 47;
+  --color-border-strong: 63 76 70;
+  --color-ink: 236 242 239;
+  --color-ink-muted: 167 181 175;
+  --color-ink-faint: 112 126 120;
 
-  --color-positive: 74 189 150;
-  --color-positive-soft: 27 46 39;
-  --color-negative: 224 133 120;
-  --color-negative-soft: 54 33 30;
-  --color-warning: 219 169 84;
-  --color-warning-soft: 54 44 25;
+  --color-positive: 74 205 150;
+  --color-positive-soft: 22 48 38;
+  --color-negative: 240 120 112;
+  --color-negative-soft: 58 30 30;
+  --color-warning: 230 176 82;
+  --color-warning-soft: 56 44 24;
 
   --color-accent: 74 189 150;
+  --color-accent-strong: 31 111 84;
   --color-accent-ink: 8 17 14;
-  --color-accent-soft: 27 46 39;
-}
-
-.dark[data-accent="navy"] {
-  --color-accent: 116 160 214;
-  --color-accent-ink: 8 14 22;
-  --color-accent-soft: 26 38 52;
-}
-
-.dark[data-accent="plum"] {
-  --color-accent: 201 141 195;
-  --color-accent-ink: 20 10 19;
-  --color-accent-soft: 45 32 44;
-}
-
-.dark[data-accent="rust"] {
-  --color-accent: 216 145 108;
-  --color-accent-ink: 20 11 6;
-  --color-accent-soft: 51 35 26;
+  --color-accent-soft: 25 48 40;
 }
 
 * {
@@ -95,6 +64,7 @@
 
 html {
   color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html.dark {
@@ -104,16 +74,172 @@ html.dark {
 body {
   background-color: rgb(var(--color-bg));
   color: rgb(var(--color-ink));
+  font-feature-settings: "calt" 1;
 }
 
-@supports (font-variation-settings: normal) {
-  .font-tabular {
-    font-variant-numeric: tabular-nums;
-  }
+h1,
+h2,
+h3,
+.font-display {
+  letter-spacing: -0.02em;
+}
+
+.font-display {
+  font-weight: 750;
+}
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
   background-color: rgb(var(--color-accent) / 0.25);
+}
+
+/* Native <select> chevron is replaced by an icon in <Select />. */
+select.gw-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* iPhone home-indicator / notch safe areas (viewport-fit=cover). */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+.bottom-safe {
+  bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+/* Hide horizontal scrollbars on swipeable rows (account cards). */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* In-app motion. All of it is disabled under prefers-reduced-motion   */
+/* (see the block at the very end of this file).                       */
+/* ------------------------------------------------------------------ */
+
+@keyframes gw-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gw-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes gw-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gw-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gw-shine {
+  from {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  to {
+    transform: translateX(220%) skewX(-20deg);
+  }
+}
+
+/* Page content on navigation (src/app/(app)/template.tsx). */
+.gw-page {
+  animation: gw-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered children: set --i on each item. */
+.gw-stagger > * {
+  animation: gw-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.gw-pop {
+  animation: gw-pop 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gw-fade {
+  animation: gw-fade 0.2s ease-out both;
+}
+
+.gw-sheet {
+  animation: gw-sheet-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (min-width: 640px) {
+  .gw-sheet {
+    animation: gw-pop 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+/* A soft light sweep across wallet cards on hover. */
+.gw-shine {
+  position: relative;
+  overflow: hidden;
+}
+.gw-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+  pointer-events: none;
+}
+.gw-shine:hover::after {
+  animation: gw-shine 0.9s ease-out;
+}
+
+.gw-press {
+  transition: transform 0.15s ease;
+}
+.gw-press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gw-page,
+  .gw-stagger > *,
+  .gw-pop,
+  .gw-fade,
+  .gw-sheet,
+  .gw-shine:hover::after {
+    animation: none !important;
+  }
+  .gw-press:active {
+    transform: none;
+  }
 }
 
 /* ------------------------------------------------------------------ */

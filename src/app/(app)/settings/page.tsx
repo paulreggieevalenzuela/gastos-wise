@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { AccentPicker } from "@/components/theme/accent-picker";
-import { useAccent } from "@/components/theme/accent-provider";
 
 interface MeResponse {
   user: {
     id: string;
+    username: string;
     email: string;
     name: string;
     currency: string;
@@ -24,8 +23,6 @@ interface MeResponse {
 
 export default function SettingsPage() {
   const { data } = useQuery({ queryKey: ["me"], queryFn: () => api.get<MeResponse>("/api/auth/me") });
-  const { theme } = useTheme();
-  const { accent } = useAccent();
 
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState("PHP");
@@ -51,13 +48,22 @@ export default function SettingsPage() {
     }
   }
 
-  async function saveAppearance() {
-    await api.patch("/api/v1/settings", { themeMode: theme, accentColor: accent });
+  // The picker/toggle pass the *new* value — reading it from context here
+  // would still see the previous one during this render.
+  async function saveAccent(hex: string) {
+    await api.patch("/api/v1/settings", { accentColor: hex });
+  }
+
+  async function saveThemeMode(mode: string) {
+    await api.patch("/api/v1/settings", { themeMode: mode });
   }
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="font-display text-2xl text-ink">Settings</h1>
+      <div>
+        <p className="text-sm font-bold text-accent">Account</p>
+        <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">Settings</h1>
+      </div>
 
       <Card id="profile" className="scroll-mt-20">
         <CardHeader>
@@ -69,11 +75,17 @@ export default function SettingsPage() {
               <Label htmlFor="name">Name</Label>
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-            <div>
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" value={data?.user.email ?? ""} disabled />
-              <p className="mt-1 text-xs text-ink-muted">This is your login username, set during setup.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" value={data?.user.username ?? ""} disabled />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" value={data?.user.email ?? ""} disabled />
+              </div>
             </div>
+            <p className="-mt-2 text-xs text-ink-faint">You can sign in with either one.</p>
             <div>
               <Label htmlFor="currency">Currency</Label>
               <Select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
@@ -87,7 +99,7 @@ export default function SettingsPage() {
               <Button type="submit" disabled={saving}>
                 {saving ? "Saving…" : "Save profile"}
               </Button>
-              {saved && <span className="text-sm text-positive">Saved.</span>}
+              {saved && <span className="gw-fade text-sm font-semibold text-positive">Saved.</span>}
             </div>
           </form>
         </CardContent>
@@ -100,15 +112,16 @@ export default function SettingsPage() {
         <CardContent className="space-y-5">
           <div>
             <Label>Theme</Label>
-            <ThemeToggle />
+            <ThemeToggle onChange={saveThemeMode} className="max-w-sm" />
           </div>
           <div>
             <Label>Accent color</Label>
-            <AccentPicker onChange={saveAppearance} />
+            <div className="max-w-sm">
+              <AccentPicker onChange={saveAccent} />
+            </div>
           </div>
-          <p className="text-xs text-ink-muted">
-            Your theme and accent are remembered on this device instantly, and saved to your account
-            so they follow you if you sign in elsewhere.
+          <p className="text-xs text-ink-faint">
+            Changes apply instantly and are saved to your account, so they follow you to other devices.
           </p>
         </CardContent>
       </Card>

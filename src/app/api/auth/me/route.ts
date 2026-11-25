@@ -17,6 +17,7 @@ export const GET = withErrorHandling(async () => {
   return NextResponse.json({
     user: {
       id: user.id,
+      username: user.username,
       email: user.email,
       name: user.name,
       currency: user.currency,

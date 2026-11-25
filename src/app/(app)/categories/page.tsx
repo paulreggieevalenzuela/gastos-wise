@@ -11,6 +11,53 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getCategoryColorClasses } from "@/lib/category-colors";
 import { getCategoryIcon } from "@/lib/icons";
 import type { ApiCategory, CategoryType } from "@/types/api";
+import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+function RowActions({
+  category,
+  onEdit,
+  onArchive,
+  onDelete,
+  small = false,
+}: {
+  category: ApiCategory;
+  onEdit: (c: ApiCategory) => void;
+  onArchive: (c: ApiCategory) => void;
+  onDelete: (c: ApiCategory) => void;
+  small?: boolean;
+}) {
+  const size = small ? 14 : 16;
+  const btn = cn(
+    "gw-press flex items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-surface-raised hover:text-ink",
+    small ? "h-8 w-8" : "h-9 w-9",
+  );
+  return (
+    <div className="flex shrink-0 items-center">
+      <button type="button" className={btn} onClick={() => onEdit(category)} title="Edit" aria-label={`Edit ${category.name}`}>
+        <Pencil size={size} />
+      </button>
+      <button
+        type="button"
+        className={btn}
+        onClick={() => onArchive(category)}
+        title={category.isArchived ? "Restore" : "Archive"}
+        aria-label={`${category.isArchived ? "Restore" : "Archive"} ${category.name}`}
+      >
+        {category.isArchived ? <ArchiveRestore size={size} /> : <Archive size={size} />}
+      </button>
+      <button
+        type="button"
+        className={cn(btn, "hover:bg-negative-soft hover:text-negative")}
+        onClick={() => onDelete(category)}
+        title="Delete"
+        aria-label={`Delete ${category.name}`}
+      >
+        <Trash2 size={size} />
+      </button>
+    </div>
+  );
+}
 
 function CategoryGroup({
   title,
@@ -33,53 +80,39 @@ function CategoryGroup({
 
   return (
     <div>
-      <h2 className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-faint">{title}</h2>
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-faint">{title}</h2>
       <Card>
         <CardContent className="divide-y divide-border p-0">
           {topLevel.map((parent) => {
             const children = categories.filter((c) => c.parentId === parent.id);
-            const Icon = getCategoryIcon(parent.icon);
+            const Icon = getCategoryIcon(parent.icon, parent.name);
             const colors = getCategoryColorClasses(parent.color);
             return (
               <div key={parent.id} className="p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-full ${colors.bg} ${colors.text}`}>
-                      <Icon size={16} />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${colors.bg} ${colors.text}`}>
+                      <Icon size={19} />
                     </div>
-                    <span className="font-medium text-ink">{parent.name}</span>
+                    <span className="truncate font-bold text-ink">{parent.name}</span>
                     {parent.isArchived && <Badge tone="neutral">Archived</Badge>}
                   </div>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => onEdit(parent)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => onArchive(parent)}>
-                      {parent.isArchived ? "Restore" : "Archive"}
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-negative" onClick={() => onDelete(parent)}>
-                      Delete
-                    </Button>
-                  </div>
+                  <RowActions category={parent} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />
                 </div>
                 {children.length > 0 && (
-                  <ul className="ml-12 mt-2 space-y-1.5">
-                    {children.map((child) => (
-                      <li key={child.id} className="flex items-center justify-between text-sm">
-                        <span className="text-ink-muted">{child.name}</span>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => onEdit(child)}>
-                            Edit
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => onArchive(child)}>
-                            {child.isArchived ? "Restore" : "Archive"}
-                          </Button>
-                          <Button size="sm" variant="ghost" className="text-negative" onClick={() => onDelete(child)}>
-                            Delete
-                          </Button>
-                        </div>
+                  <ul className="ml-14 mt-1.5 space-y-0.5">
+                    {children.map((child) => {
+                      const ChildIcon = getCategoryIcon(child.icon, child.name);
+                      return (
+                      <li key={child.id} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="flex min-w-0 items-center gap-2 font-semibold text-ink-muted">
+                          <ChildIcon size={15} className={`shrink-0 ${colors.text}`} />
+                          <span className="truncate">{child.name}</span>
+                        </span>
+                        <RowActions category={child} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} small />
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -117,13 +150,18 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl text-ink">Categories</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-accent">Organize</p>
+          <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">Categories</h1>
+        </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => setModalType("INCOME")}>
-            Add income category
+            <Plus size={16} /> Income
           </Button>
-          <Button onClick={() => setModalType("EXPENSE")}>Add expense category</Button>
+          <Button onClick={() => setModalType("EXPENSE")}>
+            <Plus size={16} /> Expense
+          </Button>
         </div>
       </div>
 

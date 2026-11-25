@@ -1,25 +1,31 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, IBM_Plex_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import {
   AccentInitScript,
   AccentProvider,
+  ThemeStyle,
 } from "@/components/theme/accent-provider";
 import { getSession } from "@/lib/auth/session";
 import { getUserById } from "@/lib/services/auth";
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+// Manrope (SIL Open Font License, see src/app/fonts/manrope/OFL.txt),
+// self-hosted from the repo — no Google Fonts request at build or runtime.
+// Two subsets: Latin for everything, Latin Extended mainly for the ₱ sign.
+const manrope = localFont({
+  src: "./fonts/manrope/Manrope-latin-variable.woff2",
+  variable: "--font-manrope",
+  weight: "200 800",
+  display: "swap",
 });
 
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["400", "500", "600", "700"],
+const manropeExt = localFont({
+  src: "./fonts/manrope/Manrope-latin-ext-variable.woff2",
+  variable: "--font-manrope-ext",
+  weight: "200 800",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -36,7 +42,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1F6F54",
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F3F6F4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D1210" },
+  ],
 };
 
 export default async function RootLayout({
@@ -51,18 +61,15 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${plexSans.variable}`}
+      className={`${manrope.variable} ${manropeExt.variable}`}
     >
       <head>
+        <ThemeStyle accent={user?.accentColor} />
         <AccentInitScript />
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider defaultTheme={user?.themeMode ?? "system"}>
-          <AccentProvider
-            initialAccent={(user?.accentColor as never) ?? "emerald"}
-          >
-            {children}
-          </AccentProvider>
+          <AccentProvider initialAccent={user?.accentColor ?? null}>{children}</AccentProvider>
         </ThemeProvider>
       </body>
     </html>

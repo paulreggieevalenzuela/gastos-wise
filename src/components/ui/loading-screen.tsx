@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/layout/logo";
 
 const TAGLINE = "Your money, mapped.";
 
@@ -46,24 +47,22 @@ export function LoadingScreen() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-surface"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-bg"
     >
       <div className="flex flex-col items-center gap-4">
-        <span className="font-display text-2xl italic text-ink">
-          GastosWise
-        </span>
+        <Logo />
 
         <div className="flex w-44 flex-col items-center gap-2">
           {/* the "ledger line" — a thin ink rule that fills in as a progress bar */}
           <div
-            className="relative h-px w-full overflow-hidden bg-border"
+            className="relative h-1.5 w-full overflow-hidden rounded-full bg-surface-raised"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
           >
             <div
-              className="absolute inset-y-0 left-0 bg-accent transition-[width] duration-150 ease-out"
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent to-accent-strong transition-[width] duration-150 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -81,7 +80,7 @@ export function LoadingScreen() {
         {TAGLINE}
       </p>
 
-      <span className="sr-only">Loading Ledger…</span>
+      <span className="sr-only">Loading GastosWise…</span>
     </div>
   );
 }

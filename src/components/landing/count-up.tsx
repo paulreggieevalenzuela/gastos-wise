@@ -2,19 +2,32 @@
 
 import { useEffect, useState } from "react";
 
-function format(value: number) {
+function format(value: number, currency?: string) {
+  if (currency) {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+    }).format(value);
+  }
   return value.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-/** Counts a peso amount up from zero once on mount (skipped for "Reduce motion"). */
+/**
+ * Counts an amount up from zero once on mount (skipped for "Reduce motion").
+ * Pass `currency` to format as money (e.g. "PHP" → ₱48,250.00); otherwise
+ * `prefix` + a plain 2-decimal number is shown.
+ */
 export function CountUp({
   value,
   prefix = "₱",
+  currency,
   durationMs = 1400,
   delayMs = 0,
 }: {
   value: number;
   prefix?: string;
+  currency?: string;
   durationMs?: number;
   delayMs?: number;
 }) {
@@ -47,8 +60,8 @@ export function CountUp({
 
   return (
     <span className="font-tabular">
-      {prefix}
-      {format(display)}
+      {currency ? null : prefix}
+      {format(display, currency)}
     </span>
   );
 }

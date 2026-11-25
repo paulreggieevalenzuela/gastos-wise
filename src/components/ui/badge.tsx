@@ -6,7 +6,7 @@ const toneClasses: Record<Tone, string> = {
   positive: "bg-positive-soft text-positive",
   negative: "bg-negative-soft text-negative",
   warning: "bg-warning-soft text-warning",
-  neutral: "bg-surface-raised text-ink-muted border border-border",
+  neutral: "bg-surface-raised text-ink-muted",
   accent: "bg-accent-soft text-accent",
 };
 
@@ -18,7 +18,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
         toneClasses[tone],
         className,
       )}

@@ -15,6 +15,7 @@ import { AuthFooterLinks } from "@/components/auth/auth-footer-links";
 import { PhoneMockup } from "@/components/landing/phone-mockup";
 import { InstitutionMarquee } from "@/components/landing/institution-marquee";
 import { Reveal } from "@/components/landing/reveal";
+import { Logo } from "@/components/layout/logo";
 
 const STEPS = [
   {
@@ -55,11 +56,8 @@ export default async function RootPage() {
 
       {/* Nav */}
       <header className="lp-fade-up mx-auto flex max-w-6xl items-center justify-between px-4 py-5 md:px-8">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-[11px] font-bold text-accent-ink">
-            GW
-          </span>
-          <span className="font-display text-lg italic text-ink">GastosWise</span>
+        <Link href="/">
+          <Logo />
         </Link>
         <nav className="flex items-center gap-2">
           <Link href="/login" className="rounded-md px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink">
@@ -89,11 +87,11 @@ export default async function RootPage() {
           </div>
 
           <h1
-            className="lp-fade-up mt-6 font-display text-[2.75rem] leading-[1.05] text-ink sm:text-6xl md:text-7xl"
+            className="lp-fade-up mt-6 text-[2.75rem] font-extrabold leading-[1.02] tracking-tight text-ink sm:text-6xl md:text-7xl"
             style={{ animationDelay: "200ms" }}
           >
             Your money,{" "}
-            <span className="relative inline-block italic text-accent">
+            <span className="relative inline-block text-accent">
               mapped.
               <span
                 aria-hidden

@@ -6,9 +6,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ["var(--font-display)", "serif"],
-        sans: ["var(--font-sans)", "sans-serif"],
-        mono: ["var(--font-mono)", "monospace"],
+        // Manrope everywhere; the Latin Extended subset follows as a fallback
+        // so glyphs like ₱ still render in Manrope.
+        sans: ["var(--font-manrope)", "var(--font-manrope-ext)", "system-ui", "sans-serif"],
+        display: ["var(--font-manrope)", "var(--font-manrope-ext)", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
         bg: "rgb(var(--color-bg) / <alpha-value>)",
@@ -21,6 +23,7 @@ const config: Config = {
         "ink-faint": "rgb(var(--color-ink-faint) / <alpha-value>)",
         accent: "rgb(var(--color-accent) / <alpha-value>)",
         "accent-ink": "rgb(var(--color-accent-ink) / <alpha-value>)",
+        "accent-strong": "rgb(var(--color-accent-strong) / <alpha-value>)",
         "accent-soft": "rgb(var(--color-accent-soft) / <alpha-value>)",
         positive: "rgb(var(--color-positive) / <alpha-value>)",
         "positive-soft": "rgb(var(--color-positive-soft) / <alpha-value>)",
@@ -30,12 +33,17 @@ const config: Config = {
         "warning-soft": "rgb(var(--color-warning-soft) / <alpha-value>)",
       },
       borderRadius: {
-        sm: "6px",
-        md: "10px",
-        lg: "14px",
+        sm: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "24px",
+        "3xl": "28px",
       },
       boxShadow: {
-        card: "0 1px 2px rgb(0 0 0 / 0.04), 0 1px 1px rgb(0 0 0 / 0.03)",
+        card: "0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -8px rgb(0 0 0 / 0.08)",
+        float: "0 10px 30px -12px rgb(0 0 0 / 0.25), 0 2px 6px rgb(0 0 0 / 0.06)",
+        glow: "0 12px 32px -12px rgb(var(--color-accent) / 0.55)",
       },
     },
   },

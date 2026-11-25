@@ -8,6 +8,12 @@ export interface Institution {
   badge: string;
   /** Brand-ish background color for the badge -- not an official brand asset, just a recognizable hint. */
   color: string;
+  /**
+   * Optional path to an official logo you have the right to use, e.g.
+   * "/institutions/gcash.svg" (put the file in public/institutions/).
+   * When set, it's shown instead of the initials badge everywhere.
+   */
+  logo?: string;
 }
 
 /**
