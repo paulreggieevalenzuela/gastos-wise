@@ -3,6 +3,7 @@
 import { forwardRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fieldBase } from "@/components/ui/input";
 
 /**
  * A password field with a show/hide toggle. Mirrors Input's styling
@@ -23,7 +24,8 @@ export const PasswordInput = forwardRef<
         ref={ref}
         type={visible ? "text" : "password"}
         className={cn(
-          "h-10 w-full rounded-md border border-border bg-surface pl-3 pr-10 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50",
+          fieldBase,
+          "h-11 pl-3.5 pr-11",
           className,
         )}
         {...props}

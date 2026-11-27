@@ -2,7 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Check, Mic, MicOff, Sparkles, Store, Wallet as WalletIcon } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarDays,
+  Check,
+  MessageSquareText,
+  Mic,
+  MicOff,
+  Sparkles,
+  Store,
+  Wallet as WalletIcon,
+} from "lucide-react";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { useCreateTransaction } from "@/hooks/use-transactions";
@@ -42,7 +54,7 @@ function isIosHomeScreenApp(): boolean {
   return (navigator as unknown as { standalone?: boolean }).standalone === true;
 }
 
-export type QuickAddReview = QuickAddDraft;
+export type QuickAddReview = QuickAddDraft & { description: string | null };
 
 /**
  * Type — or speak — a short phrase like "245 grab gcash" and save it in
@@ -64,6 +76,11 @@ export function QuickAdd({
   const [micState, setMicState] = useState<"unknown" | "available" | "keyboard">("unknown");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // Expense / Income switch: "auto" follows the words ("sahod" → Income); tapping overrides.
+  const [typeChoice, setTypeChoice] = useState<"auto" | "EXPENSE" | "INCOME">("auto");
+  // Remarks: filled from "… remarks <text>" when spoken, editable by hand.
+  const [remarksInput, setRemarksInput] = useState("");
+  const [remarksTouched, setRemarksTouched] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -73,9 +90,21 @@ export function QuickAdd({
   }, []);
 
   const draft = useMemo(
-    () => parseQuickAdd(text, accounts ?? [], categories ?? [], { defaultAccountId: accounts?.[0]?.id ?? null }),
-    [text, accounts, categories],
+    () =>
+      parseQuickAdd(text, accounts ?? [], categories ?? [], {
+        defaultAccountId: accounts?.[0]?.id ?? null,
+        forceType: typeChoice === "auto" ? null : typeChoice,
+      }),
+    [text, accounts, categories, typeChoice],
   );
+  const remarks = remarksTouched ? remarksInput : draft.remarks ?? "";
+
+  function resetAll() {
+    setText("");
+    setTypeChoice("auto");
+    setRemarksInput("");
+    setRemarksTouched(false);
+  }
 
   const account = accounts?.find((a) => a.id === draft.accountId);
   const toAccount = accounts?.find((a) => a.id === draft.transferAccountId);
@@ -141,7 +170,7 @@ export function QuickAdd({
         amount: draft.amount,
         transactionDate,
         merchant: draft.merchant,
-        description: null,
+        description: remarks.trim() || null,
         notes: null,
       };
       await createMutation.mutateAsync(
@@ -149,7 +178,7 @@ export function QuickAdd({
           ? { type: draft.type, ...base, transferAccountId: draft.transferAccountId! }
           : { type: draft.type, ...base, categoryId: draft.categoryId! },
       );
-      setText("");
+      resetAll();
       onSaved();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Couldn't save that. Try the full form.");
@@ -161,6 +190,38 @@ export function QuickAdd({
   return (
     <div className="space-y-4">
       <div>
+        <div className="mb-2.5 flex items-center justify-between gap-3">
+          <div className="grid w-full max-w-[15rem] grid-cols-2 gap-1 rounded-full bg-surface-raised p-1" role="radiogroup" aria-label="Expense or income">
+            {(
+              [
+                { value: "EXPENSE", label: "Expense", icon: ArrowUpRight, on: "bg-negative text-white" },
+                { value: "INCOME", label: "Income", icon: ArrowDownLeft, on: "bg-positive text-white" },
+              ] as const
+            ).map((opt) => {
+              const active = draft.type === opt.value;
+              const Icon = opt.icon;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setTypeChoice(opt.value)}
+                  className={cn(
+                    "gw-press flex items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-bold transition-colors duration-300",
+                    active ? `${opt.on} shadow-card` : "text-ink-muted hover:text-ink",
+                  )}
+                >
+                  <Icon size={14} strokeWidth={2.5} />
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+          <span className="shrink-0 text-[11px] font-semibold text-ink-faint">
+            {draft.type === "TRANSFER" ? "Transfer detected" : typeChoice === "auto" ? "Auto" : "Set by you"}
+          </span>
+        </div>
         <div
           className={cn(
             "flex items-center gap-2 rounded-2xl border bg-surface p-1.5 pl-4 transition-shadow",
@@ -171,7 +232,14 @@ export function QuickAdd({
           <input
             ref={inputRef}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              if (!e.target.value.trim()) {
+                setTypeChoice("auto");
+                setRemarksTouched(false);
+                setRemarksInput("");
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -230,7 +298,8 @@ export function QuickAdd({
           </div>
           <p className="mt-3 px-1 text-xs leading-relaxed text-ink-faint">
             Say or type the amount, what it was for, and the wallet. Taglish works too — &ldquo;sahod 45k
-            bdo&rdquo;, &ldquo;kape 150 kahapon&rdquo;, &ldquo;transfer 2k bdo to gcash&rdquo;.
+            bdo&rdquo;, &ldquo;kape 150 kahapon&rdquo;, &ldquo;transfer 2k bdo to gcash&rdquo;. Add details by
+            saying &ldquo;remarks&rdquo; at the end: &ldquo;500 grab gcash remarks going to the office&rdquo;.
           </p>
         </div>
       ) : (
@@ -288,6 +357,7 @@ export function QuickAdd({
                   <CategoryIcon size={12} />
                 </span>
                 {category ? category.name : "Pick a category"}
+                {category && draft.categoryIsFallback && <span className="font-medium text-ink-faint">· no match</span>}
               </span>
             )}
             {draft.merchant && (
@@ -317,11 +387,31 @@ export function QuickAdd({
               </p>
             )
           )}
+
+          <label className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
+            <MessageSquareText size={15} className="shrink-0 text-ink-faint" aria-hidden />
+            <input
+              value={remarks}
+              onChange={(e) => {
+                setRemarksTouched(true);
+                setRemarksInput(e.target.value);
+              }}
+              placeholder={draft.type === "INCOME" ? "Remarks — what kind of income?" : "Remarks — what was it for?"}
+              aria-label="Remarks"
+              maxLength={200}
+              className="h-10 min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-faint focus:outline-none sm:text-sm"
+            />
+          </label>
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <Button type="button" variant="secondary" onClick={() => onReview(draft)} disabled={!hasInput && !accounts}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => onReview({ ...draft, description: remarks.trim() || null })}
+          disabled={!hasInput && !accounts}
+        >
           {hasInput ? "Review details" : "Use full form"}
         </Button>
         <Button type="button" onClick={save} disabled={!draft.complete || saving}>

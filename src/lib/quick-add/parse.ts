@@ -39,6 +39,10 @@ export interface QuickAddDraft {
   transferAccountId: string | null;
   categoryId: string | null;
   merchant: string | null;
+  /** Free-text remarks, from "… remarks/note <text>" in the phrase. */
+  remarks: string | null;
+  /** True when nothing matched and the "Other Income" / "Other Expenses" category was used. */
+  categoryIsFallback: boolean;
   /** Days before today (0 = today, 1 = yesterday). */
   daysAgo: number;
   /** True once the draft has everything needed to save without the full form. */
@@ -205,22 +209,54 @@ function titleCase(s: string) {
   return s.replace(/\b([a-z])/g, (c) => c.toUpperCase());
 }
 
+/** Everything after one of these words is kept as remarks, not parsed. */
+const REMARKS_KEYWORD = /(?:^|\s)(?:remarks?|notes?|memo|description|details|tala)\s*[:\-–—]?\s*/i;
+
+// Not "paid"/"bayad": "got paid" is income.
+const EXPENSE_WORDS = ["expense", "expenses", "gastos", "ginastos", "spent"];
+
+/** "Other Income" / "Other Expenses" (or any category starting with "Other") for that type. */
+function findOtherCategory(categories: QuickAddCategory[], type: "INCOME" | "EXPENSE") {
+  const pool = categories.filter((c) => c.type === type && !c.isArchived && /^other\b/i.test(c.name.trim()));
+  return pool.find((c) => !c.parentId) ?? pool[0] ?? null;
+}
+
 export function parseQuickAdd(
   input: string,
   accounts: QuickAddAccount[],
   categories: QuickAddCategory[],
-  options: { defaultAccountId?: string | null } = {},
+  options: {
+    defaultAccountId?: string | null;
+    /** Set by the Expense / Income switch; overrides what the words suggest. */
+    forceType?: "EXPENSE" | "INCOME" | null;
+  } = {},
 ): QuickAddDraft {
-  const text = normalize(input);
+  // Split off remarks first so their words don't affect amount/category/merchant.
+  let remarks: string | null = null;
+  let body = input;
+  const rm = REMARKS_KEYWORD.exec(input);
+  if (rm) {
+    remarks = input.slice(rm.index + rm[0].length).trim() || null;
+    body = input.slice(0, rm.index);
+  }
+
+  const text = normalize(body);
   const { amount, match: amountMatch } = parseAmount(text);
 
   let daysAgo = 0;
   if (/\b(yesterday|kahapon|kagabi|last night)\b/.test(text)) daysAgo = 1;
 
   const accountHits = findAccounts(text, accounts);
-  const isTransfer = TRANSFER_WORDS.some((w) => wordRegex(w).test(text)) && accountHits.length >= 2;
-  const isIncome = !isTransfer && INCOME_WORDS.some((w) => wordRegex(w).test(text));
-  const type: DraftType = isTransfer ? "TRANSFER" : isIncome ? "INCOME" : "EXPENSE";
+  const saysTransfer = TRANSFER_WORDS.some((w) => wordRegex(w).test(text)) && accountHits.length >= 2;
+  const saysExpense = EXPENSE_WORDS.some((w) => wordRegex(w).test(text));
+  const saysIncome = INCOME_WORDS.some((w) => wordRegex(w).test(text)) || /\bincome\b/.test(text);
+  const type: DraftType = options.forceType
+    ? options.forceType
+    : saysTransfer
+      ? "TRANSFER"
+      : saysIncome && !saysExpense
+        ? "INCOME"
+        : "EXPENSE";
 
   // Remove the amount and wallet names, then what's left is the description.
   let rest = text;
@@ -232,16 +268,23 @@ export function parseQuickAdd(
     .map((w) => w.replace(/^[.-]+|[.-]+$/g, ""))
     .filter((w) => w && !FILLER.has(w) && !/^\d+$/.test(w));
 
-  const category = type === "TRANSFER" ? null : findCategory(text, words, categories, type === "INCOME" ? "INCOME" : "EXPENSE");
+  const matched = type === "TRANSFER" ? null : findCategory(text, words, categories, type === "INCOME" ? "INCOME" : "EXPENSE");
+  // Nothing fits? File it under "Other Income" / "Other Expenses" rather than leaving it blank.
+  const fallback =
+    type !== "TRANSFER" && !matched ? findOtherCategory(categories, type === "INCOME" ? "INCOME" : "EXPENSE") : null;
+  const category = matched ?? (fallback ? { id: fallback.id, phrase: "" } : null);
 
   // Merchant: leftover words, minus generic ones — a bare category name
   // ("food 250") or an income word ("sahod") isn't a merchant.
   const categoryNames = new Set(categories.map((c) => c.name.toLowerCase()));
-  const merchantWords = words.filter((w) => !categoryNames.has(w) && !INCOME_WORDS.includes(w));
+  const merchantWords = words.filter(
+    (w) => !categoryNames.has(w) && !INCOME_WORDS.includes(w) && !EXPENSE_WORDS.includes(w) && w !== "income",
+  );
   const merchant = merchantWords.length ? titleCase(merchantWords.join(" ")) : null;
 
   const accountId = accountHits[0]?.id ?? options.defaultAccountId ?? null;
   const transferAccountId = type === "TRANSFER" ? accountHits[1]?.id ?? null : null;
+  // A forced Expense/Income switch on a "transfer" phrase still uses the first wallet only.
 
   const complete =
     amount !== null &&
@@ -255,6 +298,8 @@ export function parseQuickAdd(
     transferAccountId,
     categoryId: category?.id ?? null,
     merchant,
+    remarks,
+    categoryIsFallback: Boolean(fallback && !matched),
     daysAgo,
     complete,
   };

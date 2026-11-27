@@ -117,4 +117,56 @@ describe("parseQuickAdd", () => {
       merchant: "Kape",
     });
   });
+
+  describe("switch, remarks and Other fallback", () => {
+    const withOther: QuickAddCategory[] = [
+      ...categories,
+      { id: "other-income", name: "Other Income", type: "INCOME", icon: "circle-plus" },
+      { id: "other-expenses", name: "Other Expenses", type: "EXPENSE", icon: "circle" },
+    ];
+    const p = (text: string, forceType?: "EXPENSE" | "INCOME") =>
+      parseQuickAdd(text, accounts, withOther, { defaultAccountId: "cash", forceType });
+
+    it("the Income/Expense switch overrides the words", () => {
+      expect(p("500 jollibee", "INCOME")).toMatchObject({ type: "INCOME" });
+      expect(p("sahod 45k bdo", "EXPENSE")).toMatchObject({ type: "EXPENSE" });
+    });
+
+    it("an unmatched income goes to Other Income (and is marked as a fallback)", () => {
+      expect(p("income 1,500 tita")).toMatchObject({
+        type: "INCOME",
+        amount: 1500,
+        categoryId: "other-income",
+        categoryIsFallback: true,
+        merchant: "Tita",
+        complete: true,
+      });
+    });
+
+    it("an unmatched expense goes to Other Expenses", () => {
+      expect(p("750 something random")).toMatchObject({ categoryId: "other-expenses", categoryIsFallback: true });
+    });
+
+    it("a real match is never marked as a fallback", () => {
+      expect(p("sahod 45k bdo")).toMatchObject({ categoryId: "salary", categoryIsFallback: false });
+    });
+
+    it("keeps everything after 'remarks' / 'note' as remarks", () => {
+      const d = p("500 grab gcash remarks going to the BGC office");
+      expect(d).toMatchObject({ amount: 500, accountId: "gcash", categoryId: "grab", remarks: "going to the BGC office" });
+      expect(p("income 2000 note: birthday money from Lola")).toMatchObject({
+        type: "INCOME",
+        amount: 2000,
+        remarks: "birthday money from Lola",
+      });
+    });
+
+    it("numbers inside remarks don't change the amount", () => {
+      expect(p("300 coffee note for 2 people")).toMatchObject({ amount: 300, remarks: "for 2 people" });
+    });
+
+    it("'got paid' is still income", () => {
+      expect(p("got paid 5000 bdo")).toMatchObject({ type: "INCOME" });
+    });
+  });
 });

@@ -2,8 +2,10 @@ import { forwardRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const fieldBase =
-  "w-full rounded-xl border border-border bg-surface text-sm text-ink transition-colors placeholder:text-ink-faint hover:border-border-strong focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60";
+// 16px text on phones: iPhone Safari zooms the whole page in when you tap a
+// field with smaller text, and doesn't zoom back out. 14px from `sm` up.
+export const fieldBase =
+  "w-full rounded-xl border border-border bg-surface text-base text-ink sm:text-sm transition-colors placeholder:text-ink-faint hover:border-border-strong focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (

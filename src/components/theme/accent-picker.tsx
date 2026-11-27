@@ -88,7 +88,7 @@ export function AccentPicker({ onChange }: { onChange?: (hex: string) => void })
           maxLength={7}
           spellCheck={false}
           aria-label="Accent color hex code"
-          className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 font-mono text-xs uppercase text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
+          className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 font-mono text-base uppercase text-ink sm:text-xs focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25"
         />
       </div>
 

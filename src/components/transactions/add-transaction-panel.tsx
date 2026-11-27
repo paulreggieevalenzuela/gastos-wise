@@ -55,6 +55,7 @@ export function AddTransactionPanel({ onDone }: { onDone: () => void }) {
               transferAccountId: draft.transferAccountId,
               categoryId: draft.categoryId,
               merchant: draft.merchant,
+              description: draft.description,
               daysAgo: draft.daysAgo,
             });
             setMode("form");

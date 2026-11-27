@@ -32,6 +32,7 @@ export interface TransactionFormInitial {
   categoryId?: string | null;
   amount?: number | null;
   merchant?: string | null;
+  description?: string | null;
   daysAgo?: number;
 }
 
@@ -111,7 +112,7 @@ export function TransactionForm({
     ),
   );
   const [merchant, setMerchant] = useState(transaction?.merchant ?? initial?.merchant ?? "");
-  const [description, setDescription] = useState(transaction?.description ?? "");
+  const [description, setDescription] = useState(transaction?.description ?? initial?.description ?? "");
   const [notes, setNotes] = useState(transaction?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -296,15 +297,15 @@ export function TransactionForm({
 
       <details className="group rounded-2xl border border-border px-4 py-3" open={Boolean(description || notes)}>
         <summary className="cursor-pointer list-none text-sm font-bold text-ink-muted marker:hidden">
-          <span className="group-open:hidden">+ Add description or notes</span>
-          <span className="hidden group-open:inline">Description &amp; notes</span>
+          <span className="group-open:hidden">+ Add remarks or notes</span>
+          <span className="hidden group-open:inline">Remarks &amp; notes</span>
         </summary>
         <div className="mt-3 space-y-3">
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Remarks</Label>
             <Input
               id="description"
-              placeholder="What was this for?"
+              placeholder={type === "INCOME" ? "What kind of income?" : "What was this for?"}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
